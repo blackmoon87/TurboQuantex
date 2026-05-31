@@ -164,3 +164,30 @@ Imagine you are a developer working on a massive project with thousands of files
    python .TurboQuantex/tq.py update --dir . --index .TurboQuantex/codebase_index.tq
    ```
    *Result*: The tool compares timestamps, identifies only changed files, indexes them, and merges them in milliseconds.
+
+### Scenario B: AI Coding Agent Integration (Zero-Prompt Coding)
+
+When working with an AI coding assistant (like Cursor, VS Code AI, or Antigravity), you want the agent to automatically search your codebase semantically to answer questions and write code without you manually prompting it to index files.
+
+1. **Agent Discovery**: The coding agent reads `.cursorrules` or detects `important_instruction_4coder_agent.md` at your project root.
+2. **Dynamic Querying**: The agent dynamically imports `turboquantex_skill.py` and runs queries in the background:
+   ```python
+   from turboquantex_skill import query_codebase
+   results = query_codebase(index_file=".TurboQuantex/index.tq", query="database connection settings")
+   ```
+3. **Contextual Awareness**: The agent reads the matching lines and modifies files with full architectural awareness, bypassing LLM context limit issues.
+
+### Scenario C: Automated Git Hook Workflow (Continuous Local Indexing)
+
+To make sure your vector index is always up-to-date with your latest git branch changes without running manual commands:
+
+1. **Install Git Hook**:
+   Register the post-commit git hook in your local repository:
+   ```bash
+   python .TurboQuantex/tq.py install-hook
+   ```
+2. **Code & Commit**:
+   Write code normally and run `git commit -m "feat: add user login endpoint"`.
+3. **Silent Background Update**:
+   The git hook automatically fires, identifies modified files, updates the local vector database `.TurboQuantex/index.tq` in milliseconds, and prints the updated compression stats directly in your terminal.
+
