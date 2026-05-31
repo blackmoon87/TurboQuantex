@@ -1009,6 +1009,8 @@ python tq.py update --dir example_project --index index.tq</div>
                 code_cli_comment3: "# Step 3: Incrementally update modified/new files only",
                 code_skill_comment1: "# Index project files recursively into a binary compressed index (.tq)",
                 code_skill_comment2: "# Query semantic matches",
+                code_setup_clone: "# Step 1: Clone the repository from GitHub",
+                code_setup_run: "# Step 2: Run setup script to build the virtual environment",
                 code_setup_comment1: "# For Windows developers (CMD/PowerShell)",
                 code_setup_comment2: "# For macOS and Linux developers (Terminal)",
                 sim_log_1: "Tokenizing text input...",
@@ -1076,6 +1078,8 @@ python tq.py update --dir example_project --index index.tq</div>
                 code_cli_comment3: "# الخطوة 3: تحديث الملفات الجديدة والمعدلة فقط تراكمياً",
                 code_skill_comment1: "# فهرسة ملفات المشروع بشكل متكرر إلى ملف مضغوط ثنائي (.tq)",
                 code_skill_comment2: "# الاستعلام عن المطابقات الدلالية للمشروع",
+                code_setup_clone: "# الخطوة 1: استنساخ المستودع من جيتهاب",
+                code_setup_run: "# الخطوة 2: تشغيل نص الإعداد لبناء البيئة الافتراضية",
                 code_setup_comment1: "# لمطوري أنظمة ويندوز (PowerShell / CMD)",
                 code_setup_comment2: "# لمطوري أنظمة ماك ولينكس (Terminal)",
                 sim_log_1: "جاري تحليل النص المدخل...",
@@ -1143,6 +1147,8 @@ python tq.py update --dir example_project --index index.tq</div>
                 code_cli_comment3: "# 步骤 3：仅对修改或新增的文件进行增量更新",
                 code_skill_comment1: "# 将项目文件递归索引到二进制压缩的 .tq 索引文件中",
                 code_skill_comment2: "# 进行语义匹配查询",
+                code_setup_clone: "# 步骤 1：从 GitHub 克隆仓库",
+                code_setup_run: "# 步骤 2：运行设置脚本以构建虚拟环境",
                 code_setup_comment1: "# 适用于 Windows 开发者 (CMD/PowerShell)",
                 code_setup_comment2: "# 适用于 macOS 和 Linux 开发者 (终端)",
                 sim_log_1: "正在对文本输入进行分词处理...",
@@ -1210,6 +1216,8 @@ python tq.py update --dir example_project --index index.tq</div>
                 code_cli_comment3: "# Шаг 3: Инкрементальное обновление только измененных файлов",
                 code_skill_comment1: "# Индексация файлов проекта рекурсивно в двоичный сжатый индекс (.tq)",
                 code_skill_comment2: "# Выполнение семантического поиска",
+                code_setup_clone: "# Шаг 1: Клонируйте репозиторий с GitHub",
+                code_setup_run: "# Шаг 2: Запустите скрипт установки для создания виртуального окружения",
                 code_setup_comment1: "# Для разработчиков на Windows (CMD / PowerShell)",
                 code_setup_comment2: "# Для разработчиков на macOS и Linux (Терминал)",
                 sim_log_1: "Токенизация входного текста...",
@@ -1274,7 +1282,12 @@ matches = query_codebase(index_file="db.tq", query="calculate sum list values", 
 print(f"Match: {matches[0]['file_path']} on Line {matches[0]['start_line']}")`;
             } else if (tab === 'setup') {
                 filename.innerText = 'setup_command.sh';
-                codeBox.innerHTML = `${dict.code_setup_comment1}
+                codeBox.innerHTML = `${dict.code_setup_clone}
+git clone https://github.com/blackmoon87/TurboQuantex.git
+cd TurboQuantex
+
+${dict.code_setup_run}
+${dict.code_setup_comment1}
 setup.bat
 
 ${dict.code_setup_comment2}
