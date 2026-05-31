@@ -2,7 +2,6 @@ import os
 import time
 import numpy as np
 from flask import Flask, request, jsonify, render_template
-from sentence_transformers import SentenceTransformer
 from turboquantex import TurboQuantex
 
 app = Flask(__name__, template_folder="templates")
@@ -58,14 +57,14 @@ def get_engine() -> TurboQuantex:
 def load_local_model():
     global local_model
     if local_model is None:
-        # Load local lightweight sentence transformer
-        local_model = SentenceTransformer('all-MiniLM-L6-v2')
+        from tq import ONNXEmbedder
+        local_model = ONNXEmbedder()
     return local_model
 
 def get_embedding(text: str) -> np.ndarray:
-    """Generates float32 embedding for a given text using local SentenceTransformer."""
+    """Generates float32 embedding for a given text using local ONNXEmbedder."""
     model = load_local_model()
-    emb = model.encode(text)
+    emb = model.encode([text])[0]
     return np.array(emb, dtype=np.float32)
 
 def recompress_all_documents():
@@ -208,7 +207,7 @@ def embed_texts():
         embs = model.encode(texts)
         return jsonify({
             "status": "success",
-            "embeddings": embs.tolist()
+            "embeddings": [e.tolist() for e in embs]
         })
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
@@ -316,6 +315,127 @@ def search():
         })
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
+
+@app.after_request
+def add_cors_headers(response):
+    response.headers.add("Access-Control-Allow-Origin", "*")
+    response.headers.add("Access-Control-Allow-Headers", "Content-Type")
+    response.headers.add("Access-Control-Allow-Methods", "GET,POST,OPTIONS")
+    return response
+
+@app.route("/api/local_query", methods=["POST", "OPTIONS"])
+def local_query():
+    if request.method == "OPTIONS":
+        return jsonify({"status": "success"})
+        
+    data = request.get_json() or {}
+    query_text = data.get("query", "").strip()
+    top_k = int(data.get("top_k", 3))
+    
+    if not query_text:
+        return jsonify({"status": "error", "message": "Query cannot be empty."}), 400
+        
+    # Find any .tq files in the parent directory of .TurboQuantex
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    parent_dir = os.path.dirname(script_dir)
+    
+    index_paths = [
+        os.path.join(parent_dir, "codebase_index.tq"),
+        os.path.join(parent_dir, "index.tq"),
+        os.path.join(parent_dir, ".TurboQuantex", "index.tq")
+    ]
+    try:
+        for f in os.listdir(parent_dir):
+            if f.endswith(".tq"):
+                path = os.path.join(parent_dir, f)
+                if path not in index_paths:
+                    index_paths.append(path)
+    except Exception:
+        pass
+        
+    index_file = None
+    for path in index_paths:
+        if os.path.exists(path):
+            index_file = path
+            break
+            
+    if not index_file:
+        return jsonify({
+            "status": "error",
+            "message": "No local TurboQuantex index (.tq) file found in the workspace root directory. Please run 'python .TurboQuantex/tq.py index --dir .' first."
+        }), 404
+        
+    import pickle
+    try:
+        with open(index_file, "rb") as f:
+            index_data = pickle.load(f)
+            
+        config_data = index_data["config"]
+        documents = index_data["documents"]
+        
+        if not documents:
+            return jsonify({"status": "success", "results": []})
+            
+        # Generate query embedding
+        query_emb = get_embedding(query_text)
+        
+        engine = get_engine()
+        # Make sure the engine config matches the loaded index config
+        if (engine.dim != config_data["dim"] or 
+            engine.bits != config_data["bits"] or 
+            engine.use_qjl != config_data["use_qjl"] or 
+            engine.qjl_dim != config_data["qjl_dim"]):
+            
+            global turboquantex_engine
+            turboquantex_engine = TurboQuantex(
+                dim=config_data["dim"],
+                bits=config_data["bits"],
+                use_qjl=config_data["use_qjl"],
+                qjl_dim=config_data["qjl_dim"],
+                seed=config_data["seed"]
+            )
+            engine = turboquantex_engine
+            
+        query_norm = np.linalg.norm(query_emb)
+        query_norm_u = query_emb / (query_norm + 1e-8) if query_norm > 1e-8 else query_emb
+        
+        results = []
+        for doc in documents:
+            q_res = None
+            if doc.get("q_res_packed") is not None:
+                q_res = np.unpackbits(doc["q_res_packed"])[:config_data["qjl_dim"]].astype(bool)
+                
+            sim = engine.estimate_inner_product(
+                doc["norm_x"],
+                doc["indices"].astype(np.int32),
+                q_res,
+                doc["norm_res"],
+                query_norm_u
+            )
+            sim = float(np.clip(sim, -1.0, 1.0))
+            results.append((doc, sim))
+            
+        results.sort(key=lambda x: x[1], reverse=True)
+        top_results = results[:top_k]
+        
+        formatted = []
+        for doc, score in top_results:
+            formatted.append({
+                "file_path": doc["file_path"],
+                "start_line": doc["start_line"],
+                "end_line": doc["end_line"],
+                "text": doc["text"],
+                "score": round(score, 4)
+            })
+            
+        return jsonify({
+            "status": "success",
+            "index_file": os.path.basename(index_file),
+            "total_chunks": len(documents),
+            "results": formatted
+        })
+    except Exception as e:
+        return jsonify({"status": "error", "message": f"Failed to query local index: {str(e)}"}), 500
 
 @app.route("/api/status", methods=["GET"])
 def get_status():

@@ -5,7 +5,6 @@ import pickle
 import time
 import numpy as np
 from typing import List, Dict, Any, Tuple
-from sentence_transformers import SentenceTransformer
 from turboquantex import TurboQuantex
 
 # Exclude directories by default
@@ -23,11 +22,156 @@ IGNORED_EXTENSIONS = {
 
 import urllib.request
 import json
+import subprocess
+import socket
 
 _local_model_cache = None
 
+class ONNXEmbedder:
+    def __init__(self):
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        self.model_dir = os.path.join(script_dir, "model")
+        self.model_path = os.path.join(self.model_dir, "model.onnx")
+        self.tokenizer_path = os.path.join(self.model_dir, "tokenizer.json")
+        
+        self._ensure_model_files()
+        
+        import onnxruntime as ort
+        from tokenizers import Tokenizer
+        
+        self.tokenizer = Tokenizer.from_file(self.tokenizer_path)
+        self.tokenizer.enable_truncation(max_length=256)
+        self.tokenizer.enable_padding(pad_id=0, pad_token="[PAD]")
+        
+        # Load ONNX session using CPUExecutionProvider
+        self.session = ort.InferenceSession(self.model_path, providers=["CPUExecutionProvider"])
+        
+    def _ensure_model_files(self):
+        os.makedirs(self.model_dir, exist_ok=True)
+        
+        files = {
+            "model.onnx": "https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/onnx/model.onnx",
+            "tokenizer.json": "https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/tokenizer.json"
+        }
+        
+        for filename, url in files.items():
+            path = os.path.join(self.model_dir, filename)
+            if not os.path.exists(path):
+                print(f"[*] Downloading local model {filename} (~90MB)...")
+                try:
+                    import ssl
+                    context = ssl._create_unverified_context()
+                    with urllib.request.urlopen(url, context=context) as response, open(path, 'wb') as out_file:
+                        out_file.write(response.read())
+                    print(f"[+] Downloaded {filename} successfully.")
+                except Exception as e:
+                    print(f"[-] Failed to download {filename}: {e}")
+                    raise e
+                    
+    def encode(self, texts: List[str]) -> List[np.ndarray]:
+        # Encode batch
+        encoded = [self.tokenizer.encode(t) for t in texts]
+        
+        # Determine max length in the batch for dynamic padding matching onnx input
+        max_len = max(len(e.ids) for e in encoded)
+        
+        input_ids = []
+        attention_mask = []
+        token_type_ids = []
+        
+        for e in encoded:
+            ids = e.ids + [0] * (max_len - len(e.ids))
+            mask = e.attention_mask + [0] * (max_len - len(e.attention_mask))
+            type_ids = e.type_ids + [0] * (max_len - len(e.type_ids))
+            
+            input_ids.append(ids)
+            attention_mask.append(mask)
+            token_type_ids.append(type_ids)
+            
+        input_ids = np.array(input_ids, dtype=np.int64)
+        attention_mask = np.array(attention_mask, dtype=np.int64)
+        token_type_ids = np.array(token_type_ids, dtype=np.int64)
+        
+        ort_inputs = {
+            "input_ids": input_ids,
+            "attention_mask": attention_mask,
+            "token_type_ids": token_type_ids
+        }
+        
+        ort_outputs = self.session.run(None, ort_inputs)
+        token_embeddings = ort_outputs[0]
+        
+        # Mean Pooling
+        input_mask_expanded = np.expand_dims(attention_mask, axis=-1).astype(np.float32)
+        sum_embeddings = np.sum(token_embeddings * input_mask_expanded, axis=1)
+        sum_mask = np.clip(np.sum(input_mask_expanded, axis=1), 1e-9, None)
+        
+        embeddings = sum_embeddings / sum_mask
+        
+        # Normalization
+        norms = np.linalg.norm(embeddings, axis=1, keepdims=True)
+        normalized_embeddings = embeddings / (norms + 1e-9)
+        
+        return [np.array(e, dtype=np.float32) for e in normalized_embeddings]
+
+def is_daemon_running() -> bool:
+    try:
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            s.settimeout(0.5)
+            s.connect(("127.0.0.1", 59402))
+            return True
+    except Exception:
+        return False
+
+def start_daemon_background():
+    """Starts the Flask daemon app.py in the background safely and cross-platform."""
+    if is_daemon_running():
+        return
+    
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    app_path = os.path.join(script_dir, "app.py")
+    
+    # Locate appropriate python executable (check venv first, otherwise standard sys.executable)
+    venv_python = os.path.join(script_dir, "venv", "Scripts", "python.exe") if os.name == "nt" else os.path.join(script_dir, "venv", "bin", "python")
+    python_exe = venv_python if os.path.exists(venv_python) else sys.executable
+    
+    print("[*] Local daemon is not running. Launching Flask service on port 59402 in the background...")
+    try:
+        # Start daemon process detached from parent CLI process
+        if os.name == "nt":
+            # On Windows, use creationflags to run detached
+            subprocess.Popen(
+                [python_exe, app_path],
+                creationflags=subprocess.CREATE_NEW_PROCESS_GROUP | subprocess.DETACHED_PROCESS,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                cwd=script_dir
+            )
+        else:
+            # On macOS/Linux, run in background
+            subprocess.Popen(
+                [python_exe, app_path],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                cwd=script_dir,
+                start_new_session=True
+            )
+        
+        # Wait up to 10 seconds for the daemon to start and respond
+        for _ in range(20):
+            if is_daemon_running():
+                print("[+] Daemon launched successfully.")
+                return
+            time.sleep(0.5)
+        print("[-] Warning: Background daemon launch timed out, proceeding with local fallback model.")
+    except Exception as e:
+        print(f"[-] Warning: Failed to start background daemon: {e}")
+
 def get_local_embeddings(texts: List[str]) -> List[np.ndarray]:
-    """Queries daemon server at http://127.0.0.1:59402 if running, or falls back to SentenceTransformer locally."""
+    """Queries daemon server at http://127.0.0.1:59402 if running, or falls back to ONNXEmbedder locally."""
+    if not is_daemon_running():
+        start_daemon_background()
+        
     try:
         url = "http://127.0.0.1:59402/api/embed"
         req = urllib.request.Request(
@@ -44,12 +188,10 @@ def get_local_embeddings(texts: List[str]) -> List[np.ndarray]:
     except Exception:
         pass # Fail silently and fallback to local model load
         
-    from sentence_transformers import SentenceTransformer
     global _local_model_cache
     if _local_model_cache is None:
-        _local_model_cache = SentenceTransformer('all-MiniLM-L6-v2')
-    embs = _local_model_cache.encode(texts)
-    return [np.array(e, dtype=np.float32) for e in embs]
+        _local_model_cache = ONNXEmbedder()
+    return _local_model_cache.encode(texts)
 
 class CodebaseIndexer:
     def __init__(self, chunk_size: int = 1200, overlap: int = 200, extensions: List[str] = None):
@@ -369,11 +511,12 @@ def run_search(args):
     print(f"\n[+] Top {len(top_results)} matches for: '{args.query}'")
     print("=" * 80)
     for idx, (doc, score) in enumerate(top_results):
-        print(f"\nRank #{idx + 1} | Similarity: {score:.4f} | {doc['file_path']} (Lines {doc['start_line']}-{doc['end_line']})")
+        meta_str = f"\nRank #{idx + 1} | Similarity: {score:.4f} | {doc['file_path']} (Lines {doc['start_line']}-{doc['end_line']})"
+        print(meta_str.encode(sys.stdout.encoding or 'utf-8', errors='replace').decode(sys.stdout.encoding or 'utf-8'))
         print("-" * 80)
         # Highlight code formatting with indentation
         indented_text = "\n".join("  " + l for l in doc["text"].split("\n")[:15])
-        print(indented_text)
+        print(indented_text.encode(sys.stdout.encoding or 'utf-8', errors='replace').decode(sys.stdout.encoding or 'utf-8'))
         if len(doc["text"].split("\n")) > 15:
             print("  ...")
         print("=" * 80)
@@ -428,6 +571,51 @@ def run_stats(args):
         
     show_stats_data(index_data, args.index)
 
+def run_install_hook(args):
+    # Walk up to find .git directory
+    curr = os.path.abspath(args.dir)
+    git_dir = None
+    for _ in range(5):
+        potential = os.path.join(curr, ".git")
+        if os.path.isdir(potential):
+            git_dir = potential
+            break
+        parent = os.path.dirname(curr)
+        if parent == curr:
+            break
+        curr = parent
+        
+    if not git_dir:
+        print("Error: Could not find .git folder in the target directory or its parents.")
+        sys.exit(1)
+        
+    hooks_dir = os.path.join(git_dir, "hooks")
+    os.makedirs(hooks_dir, exist_ok=True)
+    
+    hook_path = os.path.join(hooks_dir, "post-commit")
+    
+    hook_content = """#!/bin/sh
+# TurboQuantex post-commit hook
+echo "[TurboQuantex] Auto-updating vector index on post-commit..."
+python .TurboQuantex/tq.py update --dir . --index .TurboQuantex/index.tq
+"""
+    
+    try:
+        # Write/Overwrite hook file
+        with open(hook_path, "w", encoding="utf-8", newline="\n") as f:
+            f.write(hook_content)
+        
+        # On POSIX make it executable
+        if os.name != "nt":
+            import stat
+            st = os.stat(hook_path)
+            os.chmod(hook_path, st.st_mode | stat.S_IEXEC)
+            
+        print(f"[+] Git post-commit hook successfully installed at: {hook_path}")
+    except Exception as e:
+        print(f"[-] Failed to install git hook: {e}")
+        sys.exit(1)
+
 def main():
     parser = argparse.ArgumentParser(
         description="TurboQuantex CLI: Memory-Efficient Codebase Indexing & Semantic Search (Local Offline)"
@@ -460,6 +648,10 @@ def main():
     parser_stats = subparsers.add_parser("stats", help="Show index details and compression metrics")
     parser_stats.add_argument("--index", default="codebase_index.tq", help="Path to the index file (.tq)")
     
+    # Subparser for install-hook
+    parser_hook = subparsers.add_parser("install-hook", help="Install git post-commit hook for auto index updating")
+    parser_hook.add_argument("--dir", default=".", help="Path to project directory containing .git")
+
     args = parser.parse_args()
     
     if args.command == "index":
@@ -470,6 +662,8 @@ def main():
         run_search(args)
     elif args.command == "stats":
         run_stats(args)
+    elif args.command == "install-hook":
+        run_install_hook(args)
     else:
         parser.print_help()
 
