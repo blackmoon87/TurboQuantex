@@ -35,19 +35,28 @@ All resources are completely isolated inside the `.TurboQuantex/` folder, ensuri
 
 ## Installation & Setup
 
-We provide automated setup scripts to prepare the environment, configure the virtual environment inside the isolated folder, and install dependencies on all major operating systems.
+### Method A: Zero-Prompt AI Agent Autopilot (Preferred & Recommended)
 
-### Windows (PowerShell/CMD)
+If you are working with an AI coding assistant (such as Cursor, VS Code AI, or Antigravity), you do not need to run manual terminal commands. Simply type this prompt to your AI assistant:
+> "Start using TurboQuantex to index and search this codebase."
+
+The AI agent will automatically detect `.cursorrules` and `important_instruction_4coder_agent.md`, configure the local environment, index the codebase, and activate the background daemon without requiring your manual input.
+
+### Method B: Manual Terminal Setup (Alternative)
+
+If you prefer to configure the environment manually via the terminal, use the automated setup scripts provided inside the folder:
+
+#### Windows (PowerShell/CMD)
 Run:
 ```powershell
 .\.TurboQuantex\setup.bat
 ```
 
-### macOS & Linux
+#### macOS & Linux
 Run:
 ```bash
 chmod +x .TurboQuantex/setup.sh
-.TurboQuantex/setup.sh
+./.TurboQuantex/setup.sh
 ```
 
 ---
