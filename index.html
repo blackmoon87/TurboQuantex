@@ -7,7 +7,7 @@
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Inter:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Inter:wght@300;400;500;700&family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
@@ -27,10 +27,19 @@
             --font-inter: 'Inter', sans-serif;
         }
 
+        body[lang="ar"] {
+            --font-outfit: 'Tajawal', sans-serif;
+            --font-inter: 'Tajawal', sans-serif;
+            font-family: 'Tajawal', sans-serif !important;
+        }
+        body[lang="ar"] h1, body[lang="ar"] h2, body[lang="ar"] h3, body[lang="ar"] .stat-num {
+            font-family: 'Tajawal', sans-serif !important;
+        }
+
         * {
-            box-sizing: border-box;
             margin: 0;
             padding: 0;
+            box-sizing: border-box;
         }
 
         body {
@@ -41,52 +50,71 @@
             line-height: 1.6;
         }
 
-        /* Ambient background glow elements */
+        /* Ambient Glow Blobs */
         .ambient-glow {
             position: absolute;
-            width: 500px;
-            height: 500px;
+            width: 600px;
+            height: 600px;
             border-radius: 50%;
-            background: radial-gradient(circle, var(--accent-glow) 0%, rgba(8, 10, 16, 0) 70%);
-            filter: blur(80px);
-            z-index: 0;
+            filter: blur(140px);
+            z-index: -1;
+            opacity: 0.15;
             pointer-events: none;
         }
 
-        #glow-1 { top: -100px; right: -100px; }
-        #glow-2 { top: 600px; left: -200px; background: radial-gradient(circle, rgba(59, 130, 246, 0.25) 0%, rgba(8, 10, 16, 0) 70%); }
-        #glow-3 { bottom: 100px; right: -150px; background: radial-gradient(circle, rgba(6, 182, 212, 0.2) 0%, rgba(8, 10, 16, 0) 70%); }
+        #glow-1 {
+            top: -100px;
+            right: -100px;
+            background: var(--accent-purple);
+        }
 
+        #glow-2 {
+            top: 600px;
+            left: -200px;
+            background: var(--accent-blue);
+        }
+
+        #glow-3 {
+            bottom: -100px;
+            right: -100px;
+            background: var(--accent-cyan);
+        }
+
+        .container {
+            width: 90%;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* Header Navigation */
         header {
+            border-bottom: 1px solid var(--glass-border);
+            backdrop-filter: blur(12px);
+            background: rgba(8, 10, 16, 0.7);
             position: fixed;
-            top: 0;
-            left: 0;
             width: 100%;
-            padding: 1.5rem 5%;
+            top: 0;
+            z-index: 100;
+            padding: 1.2rem 0;
+        }
+
+        header .container {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border-bottom: 1px solid var(--glass-border);
-            z-index: 100;
-            background-color: rgba(8, 10, 16, 0.7);
         }
 
         .logo {
             font-family: var(--font-outfit);
-            font-size: 1.8rem;
+            font-size: 1.5rem;
             font-weight: 800;
-            background: linear-gradient(135deg, #fff 30%, var(--accent-cyan) 70%, var(--accent-purple) 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            color: #fff;
             display: flex;
             align-items: center;
             gap: 0.5rem;
         }
 
         .logo i {
-            font-size: 1.6rem;
             background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
@@ -94,47 +122,129 @@
 
         nav {
             display: flex;
-            gap: 2rem;
             align-items: center;
+            gap: 2rem;
         }
 
         nav a {
             color: var(--text-secondary);
             text-decoration: none;
+            font-size: 0.95rem;
             font-weight: 500;
             transition: color 0.3s;
         }
 
         nav a:hover {
-            color: var(--text-primary);
+            color: #fff;
         }
 
         .btn-launch {
-            background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
-            color: #fff;
-            padding: 0.6rem 1.4rem;
-            border-radius: 9999px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--glass-border);
+            color: #fff !important;
+            padding: 0.5rem 1.2rem;
+            border-radius: 8px;
             font-weight: 600;
-            text-decoration: none;
-            border: none;
-            box-shadow: 0 4px 20px rgba(139, 92, 246, 0.3);
-            transition: transform 0.3s, box-shadow 0.3s;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .btn-launch:hover {
+            background: var(--text-primary);
+            color: var(--bg-primary) !important;
+            box-shadow: 0 4px 15px rgba(255,255,255,0.1);
+        }
+
+        /* Language Selector Styling */
+        .lang-selector {
+            position: relative;
+            display: inline-block;
+        }
+
+        .lang-btn {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--glass-border);
+            color: var(--text-primary);
+            padding: 0.4rem 0.8rem;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            transition: all 0.3s;
+            font-family: inherit;
+        }
+
+        .lang-btn:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+
+        .lang-dropdown {
+            position: absolute;
+            top: 125%;
+            right: 0;
+            background: rgba(13, 17, 28, 0.96);
+            border: 1px solid var(--glass-border);
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+            backdrop-filter: blur(15px);
+            z-index: 1000;
+            display: none;
+            flex-direction: column;
+            min-width: 140px;
+            overflow: hidden;
+        }
+
+        .lang-dropdown.show {
+            display: flex;
+        }
+
+        .lang-option {
+            padding: 0.6rem 1rem;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: left;
             display: flex;
             align-items: center;
             gap: 0.5rem;
         }
 
-        .btn-launch:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 25px rgba(139, 92, 246, 0.5);
+        .lang-option:hover {
+            background: var(--accent-purple);
+            color: white;
         }
 
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 2rem;
-            position: relative;
-            z-index: 10;
+        /* RTL Specific Adjustments */
+        [dir="rtl"] .lang-dropdown {
+            right: auto;
+            left: 0;
+        }
+        [dir="rtl"] .lang-option {
+            text-align: right;
+            flex-direction: row-reverse;
+        }
+        [dir="rtl"] .feature-item {
+            text-align: right;
+            flex-direction: row-reverse;
+        }
+        [dir="rtl"] .sim-title {
+            flex-direction: row-reverse;
+        }
+        [dir="rtl"] .sim-label {
+            text-align: right;
+        }
+        [dir="rtl"] .sim-slider {
+            direction: ltr;
+        }
+        [dir="rtl"] .calc-metric-row {
+            flex-direction: row-reverse;
         }
 
         /* Hero Section */
@@ -453,6 +563,7 @@
             align-items: center;
             justify-content: center;
             gap: 0.5rem;
+            font-family: inherit;
         }
 
         .btn-compress:hover {
@@ -473,6 +584,8 @@
             overflow-y: auto;
             white-space: pre-wrap;
             display: none;
+            text-align: left !important;
+            direction: ltr !important;
         }
 
         /* Calculator Section */
@@ -537,7 +650,7 @@
         }
 
         .tab-btn {
-            background: rgba(255,255,255,0.03);
+            background: rgba(255, 255, 255, 0.03);
             border: 1px solid var(--glass-border);
             color: var(--text-secondary);
             padding: 0.6rem 1.5rem;
@@ -545,6 +658,7 @@
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s;
+            font-family: inherit;
         }
 
         .tab-btn.active, .tab-btn:hover {
@@ -568,6 +682,7 @@
             justify-content: space-between;
             align-items: center;
             border-bottom: 1px solid rgba(255,255,255,0.06);
+            direction: ltr !important;
         }
 
         .dot-group {
@@ -593,6 +708,8 @@
             color: #cbd5e1;
             white-space: pre;
             line-height: 1.5;
+            text-align: left !important;
+            direction: ltr !important;
         }
 
         /* Footer */
@@ -630,36 +747,51 @@
     <div class="ambient-glow" id="glow-3"></div>
 
     <header>
-        <div class="logo">
-            <i class="fa-solid fa-bolt"></i> TurboQuantex
+        <div class="container">
+            <div class="logo">
+                <i class="fa-solid fa-bolt"></i> <span data-i18n="logo">TurboQuantex</span>
+            </div>
+            <nav>
+                <a href="#features" data-i18n="nav_features">Features</a>
+                <a href="#demo" data-i18n="nav_demo">Interactive Demo</a>
+                <a href="#calculator" data-i18n="nav_calculator">RAM Calculator</a>
+                <a href="#code" data-i18n="nav_usage">Usage</a>
+                
+                <div class="lang-selector">
+                    <button class="lang-btn" onclick="toggleLangMenu()">
+                        <i class="fa-solid fa-globe"></i> <span id="current-lang">EN</span> <i class="fa-solid fa-chevron-down" style="font-size: 0.7rem;"></i>
+                    </button>
+                    <div class="lang-dropdown" id="lang-dropdown">
+                        <div class="lang-option" onclick="changeLanguage('en')">🇺🇸 English</div>
+                        <div class="lang-option" onclick="changeLanguage('ar')">🇸🇦 العربية</div>
+                        <div class="lang-option" onclick="changeLanguage('zh')">🇨🇳 中文</div>
+                        <div class="lang-option" onclick="changeLanguage('ru')">🇷🇺 Русский</div>
+                    </div>
+                </div>
+
+                <a href="/dashboard" class="btn-launch">
+                    <i class="fa-solid fa-compass"></i> <span data-i18n="nav_dashboard">Dashboard</span>
+                </a>
+            </nav>
         </div>
-        <nav>
-            <a href="#features">Features</a>
-            <a href="#demo">Interactive Demo</a>
-            <a href="#calculator">RAM Calculator</a>
-            <a href="#code">Usage</a>
-            <a href="/dashboard" class="btn-launch">
-                <i class="fa-solid fa-compass"></i> Dashboard
-            </a>
-        </nav>
     </header>
 
     <div class="container">
         
         <!-- Hero -->
         <section class="hero">
-            <div class="badge">
+            <div class="badge" data-i18n="badge_text">
                 <i class="fa-solid fa-shield-halved"></i> 100% Offline & Local Vector Search
             </div>
-            <h1>Next-Gen Codebase Vector Search<br>Powered by <span>TurboQuantex</span></h1>
-            <p>
+            <h1 data-i18n="hero_title">Next-Gen Codebase Vector Search<br>Powered by <span>TurboQuantex</span></h1>
+            <p data-i18n="hero_desc">
                 An ultra memory-efficient, local vector index engine that compresses high-dimensional codebase embeddings up to 14x. Access sub-200ms semantic lookup on thousands of files with zero OOM errors and zero API fees.
             </p>
             <div class="hero-actions">
-                <a href="/dashboard" class="btn-primary">
+                <a href="/dashboard" class="btn-primary" data-i18n="btn_launch_dashboard">
                     <i class="fa-solid fa-play"></i> Open Interactive Dashboard
                 </a>
-                <a href="#code" class="btn-secondary">
+                <a href="#code" class="btn-secondary" data-i18n="btn_get_started">
                     <i class="fa-solid fa-terminal"></i> Get Started
                 </a>
             </div>
@@ -668,20 +800,20 @@
         <!-- Stats Grid -->
         <section class="stats-grid">
             <div class="stat-card">
-                <div class="stat-num">14.2x</div>
-                <div class="stat-label">Memory Reduction</div>
+                <div class="stat-num" data-i18n="stat_reduction">14.2x</div>
+                <div class="stat-label" data-i18n="stat_reduction_lbl">Memory Reduction</div>
             </div>
             <div class="stat-card">
-                <div class="stat-num">&lt;200ms</div>
-                <div class="stat-label">Daemon Search Latency</div>
+                <div class="stat-num" data-i18n="stat_latency">&lt;200ms</div>
+                <div class="stat-label" data-i18n="stat_latency_lbl">Daemon Search Latency</div>
             </div>
             <div class="stat-card">
-                <div class="stat-num">100%</div>
-                <div class="stat-label">Offline & Private</div>
+                <div class="stat-num" data-i18n="stat_offline">100%</div>
+                <div class="stat-label" data-i18n="stat_offline_lbl">Offline & Private</div>
             </div>
             <div class="stat-card">
-                <div class="stat-num">98.4%</div>
-                <div class="stat-label">Dot-Product Fidelity</div>
+                <div class="stat-num" data-i18n="stat_fidelity">98.4%</div>
+                <div class="stat-label" data-i18n="stat_fidelity_lbl">Dot-Product Fidelity</div>
             </div>
         </section>
 
@@ -689,31 +821,31 @@
         <section class="interactive-section" id="features">
             <div class="feature-list">
                 <div class="section-title" style="text-align: left; margin-bottom: 2rem;">
-                    <h2>Engine Pillars</h2>
-                    <p>Optimized mathematics running completely locally on your machine.</p>
+                    <h2 data-i18n="features_title">Engine Pillars</h2>
+                    <p data-i18n="features_subtitle">Optimized mathematics running completely locally on your machine.</p>
                 </div>
                 
                 <div class="feature-item">
                     <div class="feature-icon"><i class="fa-solid fa-chart-line"></i></div>
                     <div class="feature-info">
-                        <h3>Lloyd-Max Codebook Optimization</h3>
-                        <p>Learns optimal centroid placement for rotated high-dimensional embedding values to maximize quantization efficiency.</p>
+                        <h3 data-i18n="feature1_title">Lloyd-Max Codebook Optimization</h3>
+                        <p data-i18n="feature1_desc">Learns optimal centroid placement for rotated high-dimensional embedding values to maximize quantization efficiency.</p>
                     </div>
                 </div>
 
                 <div class="feature-item">
                     <div class="feature-icon"><i class="fa-solid fa-compress"></i></div>
                     <div class="feature-info">
-                        <h3>Johnson-Lindenstrauss Correction</h3>
-                        <p>Recovers reconstruction error dynamically by projecting residual vectors onto a 1-bit orthogonal sketch space.</p>
+                        <h3 data-i18n="feature2_title">Johnson-Lindenstrauss Correction</h3>
+                        <p data-i18n="feature2_desc">Recovers reconstruction error dynamically by projecting residual vectors onto a 1-bit orthogonal sketch space.</p>
                     </div>
                 </div>
 
                 <div class="feature-item">
                     <div class="feature-icon"><i class="fa-solid fa-microchip"></i></div>
                     <div class="feature-info">
-                        <h3>Background Daemon Acceleration</h3>
-                        <p>Runs a background Flask daemon to cache SentenceTransformer model in memory, dropping query search latencies to milliseconds.</p>
+                        <h3 data-i18n="feature3_title">Background Daemon Acceleration</h3>
+                        <p data-i18n="feature3_desc">Runs a background Flask daemon to cache SentenceTransformer model in memory, dropping query search latencies to milliseconds.</p>
                     </div>
                 </div>
             </div>
@@ -722,18 +854,18 @@
             <div class="simulator-card" id="demo">
                 <div class="sim-header">
                     <div class="sim-title">
-                        <i class="fa-solid fa-gears"></i> Local Quantization Simulator
+                        <i class="fa-solid fa-gears"></i> <span data-i18n="sim_header">Local Quantization Simulator</span>
                     </div>
                     <div class="sim-indicator"></div>
                 </div>
 
                 <div class="sim-group">
-                    <label class="sim-label">1. Enter Sample Text / Code Snippet</label>
-                    <input type="text" id="sim-text-input" class="sim-input" value="public function registerUser($email, $password)">
+                    <label class="sim-label" data-i18n="sim_input_lbl">1. Enter Sample Text / Code Snippet</label>
+                    <input type="text" id="sim-text-input" class="sim-input" data-i18n-placeholder="sim_input_placeholder" value="public function registerUser($email, $password)">
                 </div>
 
                 <div class="sim-group">
-                    <label class="sim-label">2. Select Target Resolution (Compression Bits)</label>
+                    <label class="sim-label" data-i18n="sim_resolution_lbl">2. Select Target Resolution (Compression Bits)</label>
                     <div class="slider-container">
                         <input type="range" id="sim-bits-slider" min="2" max="4" value="3" class="sim-slider">
                         <span id="slider-val" style="font-weight: 600; width: 45px; text-align: right;">3-bits</span>
@@ -741,7 +873,7 @@
                 </div>
 
                 <button class="btn-compress" onclick="simulateQuantization()">
-                    <i class="fa-solid fa-wand-magic-sparkles"></i> Quantize & Pack Vector
+                    <i class="fa-solid fa-wand-magic-sparkles"></i> <span data-i18n="sim_btn">Quantize & Pack Vector</span>
                 </button>
 
                 <div id="sim-output" class="output-box"></div>
@@ -752,12 +884,12 @@
         <section class="calculator-section" id="calculator">
             <div class="calc-grid">
                 <div>
-                    <h2 style="font-family: var(--font-outfit); font-size: 2.5rem; margin-bottom: 1.5rem;">RAM Footprint Estimator</h2>
-                    <p style="color: var(--text-secondary); margin-bottom: 2rem; font-weight: 300;">
+                    <h2 style="font-family: var(--font-outfit); font-size: 2.5rem; margin-bottom: 1.5rem;" data-i18n="calc_header">RAM Footprint Estimator</h2>
+                    <p style="color: var(--text-secondary); margin-bottom: 2rem; font-weight: 300;" data-i18n="calc_subtitle">
                         Estimate vector storage savings instantly. Slide the handle to specify the size of your codebase in number of chunks.
                     </p>
                     <div class="sim-group">
-                        <label class="sim-label">Codebase Size (Number of Chunks)</label>
+                        <label class="sim-label" data-i18n="calc_slider_lbl">Codebase Size (Number of Chunks)</label>
                         <div class="slider-container">
                             <input type="range" id="chunks-slider" min="1000" max="100000" step="1000" value="10000" class="sim-slider" oninput="calculateSavings()">
                             <span id="chunks-val" style="font-weight: 600; width: 80px; text-align: right;">10,000</span>
@@ -767,19 +899,19 @@
 
                 <div class="calc-metrics">
                     <div class="calc-metric-row">
-                        <span class="calc-metric-label">Dimensions</span>
+                        <span class="calc-metric-label" data-i18n="calc_row_dims">Dimensions</span>
                         <span class="calc-metric-val">384 (MiniLM-L6)</span>
                     </div>
                     <div class="calc-metric-row">
-                        <span class="calc-metric-label">Float32 Standard RAM Usage</span>
+                        <span class="calc-metric-label" data-i18n="calc_row_raw">Float32 Standard RAM Usage</span>
                         <span class="calc-metric-val" id="raw-ram-val">15.36 MB</span>
                     </div>
                     <div class="calc-metric-row">
-                        <span class="calc-metric-label">TurboQuantex Packed RAM Usage</span>
+                        <span class="calc-metric-label" data-i18n="calc_row_quant">TurboQuantex Packed RAM Usage</span>
                         <span class="calc-metric-val" id="quantex-ram-val">2.15 MB</span>
                     </div>
                     <div class="calc-metric-row" style="border-bottom: none; margin-top: 1rem; align-items: center;">
-                        <span class="calc-metric-label" style="font-weight: 600; color: #fff;">Net RAM Savings</span>
+                        <span class="calc-metric-label" style="font-weight: 600; color: #fff;" data-i18n="calc_row_savings">Net RAM Savings</span>
                         <span class="savings-badge" id="savings-pct-val">86.00% Saved</span>
                     </div>
                 </div>
@@ -789,14 +921,14 @@
         <!-- Tabbed Code Showcase -->
         <section class="showcase-section" id="code">
             <div class="section-title">
-                <h2>Simple & Flexible Integration</h2>
-                <p>Deploy in seconds via the terminal CLI or reuse the programmatic API skill.</p>
+                <h2 data-i18n="showcase_title">Simple & Flexible Integration</h2>
+                <p data-i18n="showcase_subtitle">Deploy in seconds via the terminal CLI or reuse the programmatic API skill.</p>
             </div>
 
             <div class="showcase-tabs">
-                <button class="tab-btn active" onclick="switchTab('cli')">Terminal CLI</button>
-                <button class="tab-btn" onclick="switchTab('skill')">Programmatic Skill API</button>
-                <button class="tab-btn" onclick="switchTab('setup')">Environment Setup</button>
+                <button class="tab-btn active" onclick="switchTab('cli')" data-i18n="tab_cli">Terminal CLI</button>
+                <button class="tab-btn" onclick="switchTab('skill')" data-i18n="tab_skill">Programmatic Skill API</button>
+                <button class="tab-btn" onclick="switchTab('setup')" data-i18n="tab_setup">Environment Setup</button>
             </div>
 
             <div class="code-window">
@@ -823,12 +955,283 @@ python tq.py update --dir example_project --index index.tq</div>
 
     <footer>
         <div class="container">
-            <p>&copy; 2026 TurboQuantex Engine. Released under MIT License.</p>
-            <p style="font-size: 0.8rem; color: rgba(255,255,255,0.3);">Built locally with 100% offline mathematical quantization models.</p>
+            <p data-i18n="footer_license">&copy; 2026 TurboQuantex Engine. Released under MIT License.</p>
+            <p style="font-size: 0.8rem; color: rgba(255,255,255,0.3);" data-i18n="footer_sub">Built locally with 100% offline mathematical quantization models.</p>
         </div>
     </footer>
 
     <script>
+        const translations = {
+            en: {
+                title: "TurboQuantex - Offline Vector Quantization Engine",
+                logo: "TurboQuantex",
+                nav_features: "Features",
+                nav_demo: "Interactive Demo",
+                nav_calculator: "RAM Calculator",
+                nav_usage: "Usage",
+                nav_dashboard: "Dashboard",
+                badge_text: "100% Offline & Local Vector Search",
+                hero_title: "Next-Gen Codebase Vector Search<br>Powered by <span>TurboQuantex</span>",
+                hero_desc: "An ultra memory-efficient, local vector index engine that compresses high-dimensional codebase embeddings up to 14x. Access sub-200ms semantic lookup on thousands of files with zero OOM errors and zero API fees.",
+                btn_launch_dashboard: "Open Interactive Dashboard",
+                btn_get_started: "Get Started",
+                stat_reduction: "14.2x",
+                stat_reduction_lbl: "Memory Reduction",
+                stat_latency: "<200ms",
+                stat_latency_lbl: "Daemon Search Latency",
+                stat_offline: "100%",
+                stat_offline_lbl: "Offline & Private",
+                stat_fidelity: "98.4%",
+                stat_fidelity_lbl: "Dot-Product Fidelity",
+                features_title: "Engine Pillars",
+                features_subtitle: "Optimized mathematics running completely locally on your machine.",
+                feature1_title: "Lloyd-Max Codebook Optimization",
+                feature1_desc: "Learns optimal centroid placement for rotated high-dimensional embedding values to maximize quantization efficiency.",
+                feature2_title: "Johnson-Lindenstrauss Correction",
+                feature2_desc: "Recovers reconstruction error dynamically by projecting residual vectors onto a 1-bit orthogonal sketch space.",
+                feature3_title: "Background Daemon Acceleration",
+                feature3_desc: "Runs a background Flask daemon to cache SentenceTransformer model in memory, dropping query search latencies to milliseconds.",
+                sim_header: "Local Quantization Simulator",
+                sim_input_lbl: "1. Enter Sample Text / Code Snippet",
+                sim_input_placeholder: "public function registerUser($email, $password)",
+                sim_resolution_lbl: "2. Select Target Resolution (Compression Bits)",
+                sim_btn: "Quantize & Pack Vector",
+                calc_header: "RAM Footprint Estimator",
+                calc_subtitle: "Estimate vector storage savings instantly. Slide the handle to specify the size of your codebase in number of chunks.",
+                calc_slider_lbl: "Codebase Size (Number of Chunks)",
+                calc_row_dims: "Dimensions",
+                calc_row_raw: "Float32 Standard RAM Usage",
+                calc_row_quant: "TurboQuantex Packed RAM Usage",
+                calc_row_savings: "Net RAM Savings",
+                calc_savings_badge: "Saved",
+                showcase_title: "Simple & Flexible Integration",
+                showcase_subtitle: "Deploy in seconds via the terminal CLI or reuse the programmatic API skill.",
+                tab_cli: "Terminal CLI",
+                tab_skill: "Programmatic Skill API",
+                tab_setup: "Environment Setup",
+                footer_license: "© 2026 TurboQuantex Engine. Released under MIT License.",
+                footer_sub: "Built locally with 100% offline mathematical quantization models.",
+                code_cli_comment1: "# Step 1: Scan and Index a project recursively",
+                code_cli_comment2: "# Step 2: Query the quantized codebase semantically",
+                code_cli_comment3: "# Step 3: Incrementally update modified/new files only",
+                code_skill_comment1: "# Index project files recursively into a binary compressed index (.tq)",
+                code_skill_comment2: "# Query semantic matches",
+                code_setup_comment1: "# For Windows developers (CMD/PowerShell)",
+                code_setup_comment2: "# For macOS and Linux developers (Terminal)",
+                sim_log_1: "Tokenizing text input...",
+                sim_log_2: "Encoding sentence into float32 space (384 dimensions)...",
+                sim_log_3: "Pre-conditioning vector (PolarQuant Rotation)...",
+                sim_log_4: "Encoded successfully!",
+                sim_log_5: "Rotated coordinates (first 8 dim):",
+                sim_log_6: "Mapping to Lloyd-Max centroids",
+                sim_log_7: "Building 1-bit QJL Residual Correction sketch...",
+                sim_log_8: "Final Packed Representation:",
+                sim_log_9: "Bytes (Compressed from 1,536 Bytes)",
+                sim_log_10: "Complete Vector Quantization completed! Ready for semantic index matches."
+            },
+            ar: {
+                title: "TurboQuantex - محرك تكميم المتجهات المحلي دون اتصال",
+                logo: "TurboQuantex",
+                nav_features: "المميزات",
+                nav_demo: "العرض التفاعلي",
+                nav_calculator: "حاسبة الذاكرة",
+                nav_usage: "الاستخدام",
+                nav_dashboard: "لوحة التحكم",
+                badge_text: "بحث متجهات محلي 100٪ دون اتصال بالإنترنت",
+                hero_title: "البحث الدلالي الجيلي القادم في الأكواد<br>المدعوم بواسطة <span>TurboQuantex</span>",
+                hero_desc: "محرك فهرسة محلي عالي الكفاءة في استهلاك الذاكرة، يقوم بضغط متجهات الكود عالية الأبعاد حتى 14 ضعفاً. احصل على استعلامات دلالية في أقل من 200 مللي ثانية على آلاف الملفات دون استهلاك الذاكرة العشوائية ودون أي تكاليف.",
+                btn_launch_dashboard: "افتح لوحة التحكم التفاعلية",
+                btn_get_started: "ابدأ الآن",
+                stat_reduction: "14.2x",
+                stat_reduction_lbl: "تقليل استهلاك الذاكرة",
+                stat_latency: "أقل من 200ms",
+                stat_latency_lbl: "سرعة البحث عبر الخادم الخلفي",
+                stat_offline: "100%",
+                stat_offline_lbl: "أمن وخصوصية تامة",
+                stat_fidelity: "98.4%",
+                stat_fidelity_lbl: "دقة مطابقة المتجهات",
+                features_title: "أركان المحرك الرياضية",
+                features_subtitle: "رياضيات متقدمة ومحسنة تعمل محلياً بالكامل على جهازك.",
+                feature1_title: "تحسين قاموس Lloyd-Max",
+                feature1_desc: "يتعلم أفضل توزيع للمراكز لمتجهات الأبعاد المدورة لتحقيق أقصى كفاءة تكميم ممكنة.",
+                feature2_title: "تصحيح Johnson-Lindenstrauss",
+                feature2_desc: "يسترجع أخطاء إعادة البناء ديناميكياً عن طريق إسقاط المتجهات المتبقية في فضاء ترميز 1-بت متعامد.",
+                feature3_title: "خادم التسريع الخلفي (Daemon)",
+                feature3_desc: "يشغل خادم Flask خلفي لتخزين نموذج SentenceTransformer في الذاكرة، مما يقلل وقت البحث لملي ثوانٍ معدودة.",
+                sim_header: "محاكي تكميم المتجهات المحلي",
+                sim_input_lbl: "1. أدخل نصاً تجريبياً أو كوداً برمجياً",
+                sim_input_placeholder: "public function registerUser($email, $password)",
+                sim_resolution_lbl: "2. حدد دقة الضغط المطلوبة (بِتّات الضغط)",
+                sim_btn: "تكميم وضغط المتجه",
+                calc_header: "مقدّر مساحة الذاكرة العشوائية (RAM)",
+                calc_subtitle: "احسب نسبة التوفير في الذاكرة فورياً. قم بتحريك المؤشر لتحديد حجم الأكواد البرمجية بعدد أجزاء الكود.",
+                calc_slider_lbl: "حجم الكود (عدد أجزاء الأكواد Chunks)",
+                calc_row_dims: "الأبعاد (Dimensions)",
+                calc_row_raw: "استهلاك الذاكرة القياسي Float32",
+                calc_row_quant: "استهلاك ذاكرة TurboQuantex المضغوطة",
+                calc_row_savings: "صافي التوفير في الذاكرة",
+                calc_savings_badge: "موفّر",
+                showcase_title: "تكامل بسيط ومرن",
+                showcase_subtitle: "ابدأ التشغيل في ثوانٍ معدودة عبر واجهة الأوامر CLI أو استخدم واجهة برمجية للذكاء الاصطناعي.",
+                tab_cli: "واجهة الأوامر CLI",
+                tab_skill: "واجهة المهارات البرمجية",
+                tab_setup: "تهيئة البيئة",
+                footer_license: "© 2026 محرك TurboQuantex. مرخص بموجب رخصة MIT.",
+                footer_sub: "تم تطويره محلياً 100٪ باستخدام نماذج تكميم رياضية تعمل دون اتصال بالإنترنت.",
+                code_cli_comment1: "# الخطوة 1: مسح وفهرسة المشروع بشكل متكرر",
+                code_cli_comment2: "# الخطوة 2: الاستعلام الدلالي عن الكود المفهرس",
+                code_cli_comment3: "# الخطوة 3: تحديث الملفات الجديدة والمعدلة فقط تراكمياً",
+                code_skill_comment1: "# فهرسة ملفات المشروع بشكل متكرر إلى ملف مضغوط ثنائي (.tq)",
+                code_skill_comment2: "# الاستعلام عن المطابقات الدلالية للمشروع",
+                code_setup_comment1: "# لمطوري أنظمة ويندوز (PowerShell / CMD)",
+                code_setup_comment2: "# لمطوري أنظمة ماك ولينكس (Terminal)",
+                sim_log_1: "جاري تحليل النص المدخل...",
+                sim_log_2: "جاري ترميز النص في فضاء float32 (بأبعاد 384)...",
+                sim_log_3: "جاري تهيئة المتجه (تدوير PolarQuant)...",
+                sim_log_4: "تم الترميز بنجاح!",
+                sim_log_5: "الإحداثيات المدورة (أول 8 أبعاد):",
+                sim_log_6: "جاري التوزيع على مراكز Lloyd-Max بـ",
+                sim_log_7: "جاري بناء رمز تصحيح QJL المتبقي بـ 1-بت...",
+                sim_log_8: "التمثيل النهائي المضغوط:",
+                sim_log_9: "بايت (مضغوطة من 1,536 بايت)",
+                sim_log_10: "اكتمل التكميم الكامل للمتجهات! جاهز لمطابقة الفهرس الدلالي."
+            },
+            zh: {
+                title: "TurboQuantex - 离线向量量化引擎",
+                logo: "TurboQuantex",
+                nav_features: "功能特性",
+                nav_demo: "交互演示",
+                nav_calculator: "内存计算器",
+                nav_usage: "使用指南",
+                nav_dashboard: "仪表盘",
+                badge_text: "100% 离线和本地向量搜索",
+                hero_title: "由 <span>TurboQuantex</span> 驱动的<br>下一代代码库向量搜索",
+                hero_desc: "这是一款内存利用率极高的本地向量索引引擎，可将高维代码嵌入压缩高达 14 倍。在数千个文件上实现低于 200 毫秒的语义查找，且零内存溢出 (OOM) 风险，零 API 费用。",
+                btn_launch_dashboard: "打开交互式仪表盘",
+                btn_get_started: "立即开始",
+                stat_reduction: "14.2 倍",
+                stat_reduction_lbl: "内存占用减少",
+                stat_latency: "<200 毫秒",
+                stat_latency_lbl: "后台守护进程搜索延迟",
+                stat_offline: "100%",
+                stat_offline_lbl: "离线与完全隐私",
+                stat_fidelity: "98.4%",
+                stat_fidelity_lbl: "点积匹配保真度",
+                features_title: "引擎核心技术支柱",
+                features_subtitle: "完全在您的本地机器上运行的优化数学架构。",
+                feature1_title: "Lloyd-Max 码书优化",
+                feature1_desc: "针对旋转的高维嵌入向量，智能学习最佳中心点位置，从而最大化量化效率。",
+                feature2_title: "Johnson-Lindenstrauss 纠错机制",
+                feature2_desc: "通过将残差向量投影到 1 位正交草图空间，动态恢复重建误差。",
+                feature3_title: "后台守护进程加速",
+                feature3_desc: "运行 Flask 后台守护进程以在内存中缓存 SentenceTransformer 模型，将搜索延迟降低到毫秒级。",
+                sim_header: "本地量化模拟器",
+                sim_input_lbl: "1. 输入示例文本/代码片段",
+                sim_input_placeholder: "public function registerUser($email, $password)",
+                sim_resolution_lbl: "2. 选择目标分辨率（压缩位数）",
+                sim_btn: "量化并打包向量",
+                calc_header: "内存占用预估",
+                calc_subtitle: "立即可视化估算向量存储节省情况。拖动滑块指定代码库的分块总数。",
+                calc_slider_lbl: "代码库大小（分块总数）",
+                calc_row_dims: "维度 (Dimensions)",
+                calc_row_raw: "标准 Float32 内存占用",
+                calc_row_quant: "TurboQuantex 打包后内存占用",
+                calc_row_savings: "净内存节省",
+                calc_savings_badge: "已节省",
+                showcase_title: "简单灵活的集成方案",
+                showcase_subtitle: "通过终端命令行工具在数秒内完成部署，或直接使用可复用的 AI 代理技能。",
+                tab_cli: "终端命令行",
+                tab_skill: "可编程技能接口",
+                tab_setup: "环境部署",
+                footer_license: "© 2026 TurboQuantex 引擎。采用 MIT 许可证开源。",
+                footer_sub: "完全使用离线数学量化模型在本地构建。",
+                code_cli_comment1: "# 步骤 1：递归扫描并索引项目文件",
+                code_cli_comment2: "# 步骤 2：对量化后的代码库进行语义搜索",
+                code_cli_comment3: "# 步骤 3：仅对修改或新增的文件进行增量更新",
+                code_skill_comment1: "# 将项目文件递归索引到二进制压缩的 .tq 索引文件中",
+                code_skill_comment2: "# 进行语义匹配查询",
+                code_setup_comment1: "# 适用于 Windows 开发者 (CMD/PowerShell)",
+                code_setup_comment2: "# 适用于 macOS 和 Linux 开发者 (终端)",
+                sim_log_1: "正在对文本输入进行分词处理...",
+                sim_log_2: "正在将句子编码为 float32 空间（384 维度）...",
+                sim_log_3: "正在对向量进行预处理（PolarQuant 旋转）...",
+                sim_log_4: "编码成功！",
+                sim_log_5: "旋转后的坐标（前 8 维）：",
+                sim_log_6: "映射到 Lloyd-Max 中心点（位数：",
+                sim_log_7: "构建 1-bit QJL 残差纠错草图...",
+                sim_log_8: "最终打包表示：",
+                sim_log_9: "字节（自 1,536 字节压缩）",
+                sim_log_10: "向量量化完全就绪！可以进行语义索引匹配。"
+            },
+            ru: {
+                title: "TurboQuantex - Локальный Движок Квантования Векторов",
+                logo: "TurboQuantex",
+                nav_features: "Преимущества",
+                nav_demo: "Интерактивное Демо",
+                nav_calculator: "Калькулятор ОЗУ",
+                nav_usage: "Инструкция",
+                nav_dashboard: "Панель",
+                badge_text: "100% Локальный и Автономный Векторный Поиск",
+                hero_title: "Векторный Поиск по Коду Нового Поколения<br>на базе <span>TurboQuantex</span>",
+                hero_desc: "Исключительно энергоэффективный локальный движок индексации векторов, сжимающий высокоразмерные эмбеддинги кода до 14 раз. Семантический поиск по тысячам файлов менее чем за 200 мс без риска переполнения памяти (OOM) и без платы за API.",
+                btn_launch_dashboard: "Открыть панель управления",
+                btn_get_started: "Начать работу",
+                stat_reduction: "14.2x",
+                stat_reduction_lbl: "Снижение требований к ОЗУ",
+                stat_latency: "<200 мс",
+                stat_latency_lbl: "Задержка локального демона",
+                stat_offline: "100%",
+                stat_offline_lbl: "Безопасно и конфиденциально",
+                stat_fidelity: "98.4%",
+                stat_fidelity_lbl: "Точность скалярного произведения",
+                features_title: "Технологические Столпы",
+                features_subtitle: "Оптимизированные математические алгоритмы, работающие полностью на вашем ПК.",
+                feature1_title: "Оптимизация Кодовой Книги Ллойда-Макса",
+                feature1_desc: "Находит оптимальное расположение центроидов для повернутых высокоразмерных векторов, обеспечивая максимальную плотность квантования.",
+                feature2_title: "Коррекция Джонсона-Линденштрауса",
+                feature2_desc: "Динамически компенсирует ошибку квантования путем проецирования векторов невязки на 1-битное ортогональное пространство.",
+                feature3_title: "Ускорение Фоновым Демоном",
+                feature3_desc: "Запускает фоновую службу Flask для кэширования модели SentenceTransformer в ОЗУ, сводя время поиска к миллисекундам.",
+                sim_header: "Симулятор Квантования Векторов",
+                sim_input_lbl: "1. Введите пример текста или кода",
+                sim_input_placeholder: "public function registerUser($email, $password)",
+                sim_resolution_lbl: "2. Выберите битрейт квантования (сжатие)",
+                sim_btn: "Квантовать вектор",
+                calc_header: "Калькулятор Экономии ОЗУ",
+                calc_subtitle: "Мгновенно оцените экономию памяти. Перетащите ползунок для настройки общего числа сегментов кода.",
+                calc_slider_lbl: "Размер кодовой базы (кол-во фрагментов)",
+                calc_row_dims: "Размерность векторов",
+                calc_row_raw: "Размер ОЗУ стандартного Float32",
+                calc_row_quant: "Размер ОЗУ с TurboQuantex",
+                calc_row_savings: "Чистая экономия ОЗУ",
+                calc_savings_badge: "Сэкономлено",
+                showcase_title: "Простая Интеграция",
+                showcase_subtitle: "Развертывание за несколько секунд через терминал или интеграция программного API.",
+                tab_cli: "Консольный CLI",
+                tab_skill: "Программный Skill API",
+                tab_setup: "Настройка окружения",
+                footer_license: "© 2026 Движок TurboQuantex. Лицензия MIT.",
+                footer_sub: "Создано локально на 100% автономных математических моделях.",
+                code_cli_comment1: "# Шаг 1: Сканирование и рекурсивная индексация проекта",
+                code_cli_comment2: "# Шаг 2: Семантический поиск по квантованному коду",
+                code_cli_comment3: "# Шаг 3: Инкрементальное обновление только измененных файлов",
+                code_skill_comment1: "# Индексация файлов проекта рекурсивно в двоичный сжатый индекс (.tq)",
+                code_skill_comment2: "# Выполнение семантического поиска",
+                code_setup_comment1: "# Для разработчиков на Windows (CMD / PowerShell)",
+                code_setup_comment2: "# Для разработчиков на macOS и Linux (Терминал)",
+                sim_log_1: "Токенизация входного текста...",
+                sim_log_2: "Кодирование предложения в пространство float32 (384 измерения)...",
+                sim_log_3: "Предобработка вектора (вращение PolarQuant)...",
+                sim_log_4: "Кодирование завершено успешно!",
+                sim_log_5: "Повернутые координаты (первые 8 измерений):",
+                sim_log_6: "Отображение на центроиды Ллойда-Макса (кол-во бит: ",
+                sim_log_7: "Создание 1-битной схемы коррекции невязок QJL...",
+                sim_log_8: "Итоговое упакованное представление:",
+                sim_log_9: "байт (сжато из 1 536 байт)",
+                sim_log_10: "Полное квантование вектора завершено! Готово к семантическому поиску."
+            }
+        };
+
         const slider = document.getElementById('sim-bits-slider');
         const sliderVal = document.getElementById('slider-val');
         slider.addEventListener('input', () => {
@@ -839,38 +1242,49 @@ python tq.py update --dir example_project --index index.tq</div>
         function switchTab(tab) {
             const btns = document.querySelectorAll('.tab-btn');
             btns.forEach(btn => btn.classList.remove('active'));
-            event.target.classList.add('active');
+            
+            if (window.event && window.event.target && window.event.target.classList.contains('tab-btn')) {
+                window.event.target.classList.add('active');
+            } else {
+                btns.forEach(btn => {
+                    if (btn.getAttribute('onclick').includes(tab)) {
+                        btn.classList.add('active');
+                    }
+                });
+            }
 
             const filename = document.getElementById('tab-filename');
             const codeBox = document.getElementById('code-box');
+            const currentLang = localStorage.getItem('selected_language') || 'en';
+            const dict = translations[currentLang] || translations['en'];
 
             if (tab === 'cli') {
                 filename.innerText = 'cli_run.sh';
-                codeBox.innerHTML = `# Step 1: Scan and Index a project recursively
+                codeBox.innerHTML = `${dict.code_cli_comment1}
 python tq.py index --dir example_project --index index.tq
 
-# Step 2: Query the quantized codebase semantically
+${dict.code_cli_comment2}
 python tq.py search --index index.tq --query "database user insert logic" --top-k 2
 
-# Step 3: Incrementally update modified/new files only
+${dict.code_cli_comment3}
 python tq.py update --dir example_project --index index.tq`;
             } else if (tab === 'skill') {
                 filename.innerText = 'app_skill.py';
                 codeBox.innerHTML = `from turboquantex_skill import index_codebase, query_codebase, update_codebase
 
-# Index project files recursively into a binary compressed index (.tq)
+${dict.code_skill_comment1}
 stats = index_codebase(dir_path="example_project", index_file="db.tq", bits="auto")
 print(f"Compressed database size: {stats['disk_size_kb']} KB")
 
-# Query semantic matches
+${dict.code_skill_comment2}
 matches = query_codebase(index_file="db.tq", query="calculate sum list values", top_k=1)
 print(f"Match: {matches[0]['file_path']} on Line {matches[0]['start_line']}")`;
             } else if (tab === 'setup') {
                 filename.innerText = 'setup_command.sh';
-                codeBox.innerHTML = `# For Windows developers (CMD/PowerShell)
+                codeBox.innerHTML = `${dict.code_setup_comment1}
 setup.bat
 
-# For macOS and Linux developers (Terminal)
+${dict.code_setup_comment2}
 chmod +x setup.sh
 ./setup.sh`;
             }
@@ -881,14 +1295,15 @@ chmod +x setup.sh
             const text = document.getElementById('sim-text-input').value;
             const bits = parseInt(document.getElementById('sim-bits-slider').value);
             const outputBox = document.getElementById('sim-output');
+            
+            const currentLang = localStorage.getItem('selected_language') || 'en';
+            const dict = translations[currentLang] || translations['en'];
 
             outputBox.style.display = 'block';
-            outputBox.innerHTML = `[*] Tokenizing text input...\n[*] Encoding sentence into float32 space (384 dimensions)...\n[*] Pre-conditioning vector (PolarQuant Rotation)...`;
+            outputBox.innerHTML = `[*] ${dict.sim_log_1}\n[*] ${dict.sim_log_2}\n[*] ${dict.sim_log_3}`;
 
             setTimeout(() => {
-                // Generate a mock array of rotated coordinates
                 const mockRotated = Array.from({length: 8}, () => (Math.random() * 4 - 2).toFixed(4));
-                // Quantize rotated coordinates mock
                 const levels = Math.pow(2, bits);
                 const step = 4.0 / levels;
                 const mockQuantized = mockRotated.map(v => {
@@ -896,7 +1311,7 @@ chmod +x setup.sh
                     return (-2.0 + idx * step).toFixed(2);
                 });
 
-                outputBox.innerHTML = `[+] Encoded successfully!\n[+] Rotated coordinates (first 8 dim):\n   [ ${mockRotated.join(', ')} ]\n\n[*] Mapping to ${levels}-centroid Lloyd-Max centroids (${bits}-bits):\n   [ ${mockQuantized.join(', ')} ]\n\n[*] Building 1-bit QJL Residual Correction sketch...\n[+] Final Packed Representation: ${Math.round(384 * bits / 8)} Bytes (Compressed from 1,536 Bytes)\n[+] Complete Vector Quantization completed! Ready for semantic index matches.`;
+                outputBox.innerHTML = `[+] ${dict.sim_log_4}\n[+] ${dict.sim_log_5}\n   [ ${mockRotated.join(', ')} ]\n\n[*] ${dict.sim_log_6} (${bits}-bits):\n   [ ${mockQuantized.join(', ')} ]\n\n[*] ${dict.sim_log_7}\n[+] ${dict.sim_log_8} ${Math.round(384 * bits / 8)} ${dict.sim_log_9}\n[+] ${dict.sim_log_10}`;
             }, 800);
         }
 
@@ -909,19 +1324,27 @@ chmod +x setup.sh
             val.innerText = chunks.toLocaleString();
 
             const dim = 384;
-            // Float32: chunks * dim * 4 bytes
             const float32Bytes = chunks * dim * 4;
             
-            // Quantex RAM: 3-bits index per dimension + 128-bits QJL + 64 bits overhead
             const bitsPerVector = 32 + 32 + (dim * 3) + 128;
             const bytesPerVector = Math.ceil(bitsPerVector / 8);
             const quantexBytes = chunks * bytesPerVector;
 
             const savingsPct = (1.0 - (quantexBytes / float32Bytes)) * 100.0;
 
+            const currentLang = localStorage.getItem('selected_language') || 'en';
+            const dict = translations[currentLang] || translations['en'];
+
             document.getElementById('raw-ram-val').innerText = formatBytesVal(float32Bytes);
             document.getElementById('quantex-ram-val').innerText = formatBytesVal(quantexBytes);
-            document.getElementById('savings-pct-val').innerText = `${savingsPct.toFixed(2)}% Saved`;
+            
+            if (currentLang === 'ar') {
+                document.getElementById('savings-pct-val').innerText = `%${savingsPct.toFixed(2)} ${dict.calc_savings_badge}`;
+            } else if (currentLang === 'zh') {
+                document.getElementById('savings-pct-val').innerText = `${dict.calc_savings_badge} ${savingsPct.toFixed(2)}%`;
+            } else {
+                document.getElementById('savings-pct-val').innerText = `${savingsPct.toFixed(2)}% ${dict.calc_savings_badge}`;
+            }
         }
 
         function formatBytesVal(b) {
@@ -930,8 +1353,78 @@ chmod +x setup.sh
             return `${(b / (1024 * 1024)).toFixed(2)} MB`;
         }
 
+        // Language Switcher Toggle
+        function toggleLangMenu() {
+            document.getElementById('lang-dropdown').classList.toggle('show');
+        }
+
+        // Close dropdown on click outside
+        window.addEventListener('click', function(e) {
+            if (!e.target.closest('.lang-selector')) {
+                document.getElementById('lang-dropdown').classList.remove('show');
+            }
+        });
+
+        function changeLanguage(lang) {
+            localStorage.setItem('selected_language', lang);
+            applyLanguage(lang);
+            document.getElementById('lang-dropdown').classList.remove('show');
+        }
+
+        function applyLanguage(lang) {
+            const dictionary = translations[lang] || translations['en'];
+            
+            // Set document attribute
+            document.documentElement.lang = lang;
+            document.body.setAttribute('lang', lang);
+            
+            // Set text direction
+            if (lang === 'ar') {
+                document.documentElement.dir = 'rtl';
+                document.body.dir = 'rtl';
+            } else {
+                document.documentElement.dir = 'ltr';
+                document.body.dir = 'ltr';
+            }
+            
+            // Update page title
+            document.title = dictionary.title;
+            
+            // Update text for all data-i18n elements
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (dictionary[key]) {
+                    el.innerHTML = dictionary[key];
+                }
+            });
+            
+            // Update placeholders
+            document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+                const key = el.getAttribute('data-i18n-placeholder');
+                if (dictionary[key]) {
+                    el.placeholder = dictionary[key];
+                }
+            });
+            
+            // Update active state in language menu
+            document.getElementById('current-lang').innerText = lang.toUpperCase();
+            
+            // Re-trigger calculation to update text inside calculator metrics
+            calculateSavings();
+            
+            // Update active code box tab content based on language
+            const activeTabBtn = document.querySelector('.tab-btn.active');
+            if (activeTabBtn) {
+                const activeTab = activeTabBtn.getAttribute('onclick').match(/'([^']+)'/)[1];
+                switchTab(activeTab);
+            }
+        }
+
         // Initial run
-        calculateSavings();
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedLang = localStorage.getItem('selected_language') || 'en';
+            applyLanguage(savedLang);
+        });
     </script>
 </body>
 </html>
