@@ -59,5 +59,5 @@ echo "To start the background embedding daemon:"
 echo "   python3 .TurboQuantex/app.py"
 echo
 echo "To run vector codebase searches:"
-echo "   python3 .TurboQuantex/turbo_code.py search --query \"search term\""
+echo "   python3 .TurboQuantex/tq.py search --query \"search term\""
 echo

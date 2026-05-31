@@ -17,7 +17,7 @@ All resources are completely isolated inside the `.TurboQuantex/` folder, ensuri
 └── .TurboQuantex/
     ├── app.py                  # Flask Web Server (API & Dashboard Backend)
     ├── turboquantex.py         # Core Compression Math (PolarQuant & QJL)
-    ├── turbo_code.py           # CLI Codebase Indexer, Search & Update Utility
+    ├── tq.py                   # CLI Codebase Indexer, Search & Update Utility
     ├── turboquantex_skill.py   # Reusable AI Agent Programmatic Skill API
     ├── example_usage.py        # Demo script showing full indexing/updating lifecycle
     ├── setup.bat               # Windows Environment & Dependency Setup Script
@@ -63,14 +63,14 @@ python .TurboQuantex/app.py
 
 ---
 
-## 2. CLI Codebase Utility (`turbo_code.py`)
+## 2. CLI Codebase Utility (`tq.py`)
 
 A terminal utility is provided to scan, chunk, index, search, and update large directories recursively.
 
 ### A. Index a Codebase Directory
 To scan a directory, generate embeddings, compress them, and save the binary database:
 ```bash
-python .TurboQuantex/turbo_code.py index --dir example_project --index .TurboQuantex/codebase_index.tq
+python .TurboQuantex/tq.py index --dir example_project --index .TurboQuantex/codebase_index.tq
 ```
 - `--dir`: Directory containing source code to scan.
 - `--index`: Name/path of the output compressed index file.
@@ -79,19 +79,19 @@ python .TurboQuantex/turbo_code.py index --dir example_project --index .TurboQua
 ### B. Query the Index
 To search the codebase semantically:
 ```bash
-python .TurboQuantex/turbo_code.py search --index .TurboQuantex/codebase_index.tq --query "database insert user record" --top-k 2
+python .TurboQuantex/tq.py search --index .TurboQuantex/codebase_index.tq --query "database insert user record" --top-k 2
 ```
 
 ### C. Incremental Update
 When code files change, only updated or new files are re-indexed. Unmodified files are loaded instantly from the cache, saving time:
 ```bash
-python .TurboQuantex/turbo_code.py update --dir example_project --index .TurboQuantex/codebase_index.tq
+python .TurboQuantex/tq.py update --dir example_project --index .TurboQuantex/codebase_index.tq
 ```
 
 ### D. Display Footprint Metrics
 To view vector statistics and memory-saving percentages:
 ```bash
-python .TurboQuantex/turbo_code.py stats --index .TurboQuantex/codebase_index.tq
+python .TurboQuantex/tq.py stats --index .TurboQuantex/codebase_index.tq
 ```
 
 ---
@@ -150,17 +150,17 @@ Imagine you are a developer working on a massive project with thousands of files
 2. **Execute Full Initial Indexing**:
    Index your codebase. The tool is pre-configured to automatically skip build and dependency directories like `vendor/`, `node_modules/`, `storage/`, `.git/`, and `.TurboQuantex/` itself:
    ```bash
-   python .TurboQuantex/turbo_code.py index --dir . --index .TurboQuantex/codebase_index.tq
+   python .TurboQuantex/tq.py index --dir . --index .TurboQuantex/codebase_index.tq
    ```
    *Result*: Your entire business logic is indexed and packed into a tiny `codebase_index.tq` binary file.
 3. **Daily Semantic Querying**:
    Query your project semantically:
    ```bash
-   python .TurboQuantex/turbo_code.py search --index .TurboQuantex/codebase_index.tq --query "user auth login validation" --top-k 1
+   python .TurboQuantex/tq.py search --index .TurboQuantex/codebase_index.tq --query "user auth login validation" --top-k 1
    ```
 4. **Incremental Updating**:
    Whenever files are updated, run:
    ```bash
-   python .TurboQuantex/turbo_code.py update --dir . --index .TurboQuantex/codebase_index.tq
+   python .TurboQuantex/tq.py update --dir . --index .TurboQuantex/codebase_index.tq
    ```
    *Result*: The tool compares timestamps, identifies only changed files, indexes them, and merges them in milliseconds.

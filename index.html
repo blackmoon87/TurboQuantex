@@ -809,13 +809,13 @@
                     <span style="font-size: 0.85rem; color: var(--text-secondary);" id="tab-filename">cli_run.sh</span>
                 </div>
                 <div class="code-content" id="code-box"># Step 1: Scan and Index a project recursively
-python turbo_code.py index --dir example_project --index index.tq
+python tq.py index --dir example_project --index index.tq
 
 # Step 2: Query the quantized codebase semantically
-python turbo_code.py search --index index.tq --query "database user insert logic" --top-k 2
+python tq.py search --index index.tq --query "database user insert logic" --top-k 2
 
 # Step 3: Incrementally update modified/new files only
-python turbo_code.py update --dir example_project --index index.tq</div>
+python tq.py update --dir example_project --index index.tq</div>
             </div>
         </section>
 
@@ -847,13 +847,13 @@ python turbo_code.py update --dir example_project --index index.tq</div>
             if (tab === 'cli') {
                 filename.innerText = 'cli_run.sh';
                 codeBox.innerHTML = `# Step 1: Scan and Index a project recursively
-python turbo_code.py index --dir example_project --index index.tq
+python tq.py index --dir example_project --index index.tq
 
 # Step 2: Query the quantized codebase semantically
-python turbo_code.py search --index index.tq --query "database user insert logic" --top-k 2
+python tq.py search --index index.tq --query "database user insert logic" --top-k 2
 
 # Step 3: Incrementally update modified/new files only
-python turbo_code.py update --dir example_project --index index.tq`;
+python tq.py update --dir example_project --index index.tq`;
             } else if (tab === 'skill') {
                 filename.innerText = 'app_skill.py';
                 codeBox.innerHTML = `from turboquantex_skill import index_codebase, query_codebase, update_codebase

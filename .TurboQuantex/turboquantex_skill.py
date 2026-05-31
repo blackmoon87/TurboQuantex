@@ -14,7 +14,7 @@ from typing import List, Dict, Any
 
 # Ensure the local path is included for imports
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-from turbo_code import CodebaseIndexer
+from tq import CodebaseIndexer
 from turboquantex import TurboQuantex
 
 def index_codebase(
@@ -39,7 +39,7 @@ def index_codebase(
         return {"chunks": 0, "status": "No files found to index."}
         
     dim = 384
-    from turbo_code import get_local_embeddings
+    from tq import get_local_embeddings
     
     # Adaptive bit selection
     actual_bits = bits
@@ -140,7 +140,7 @@ def update_codebase(
     
     active_files = {}
     for root, dirs, files in os.walk(dir_path):
-        from turbo_code import DEFAULT_EXCLUDES, IGNORED_EXTENSIONS
+        from tq import DEFAULT_EXCLUDES, IGNORED_EXTENSIONS
         dirs[:] = [d for d in dirs if d not in DEFAULT_EXCLUDES]
         for file in files:
             ext = os.path.splitext(file)[1].lower()
@@ -178,7 +178,7 @@ def update_codebase(
     # 4. Re-index modified/new files locally
     if files_to_index:
         dim = 384
-        from turbo_code import get_local_embeddings
+        from tq import get_local_embeddings
             
         # Initialize TurboQuantex engine
         engine = TurboQuantex(
@@ -259,7 +259,7 @@ def query_codebase(
     if not documents:
         return []
         
-    from turbo_code import get_local_embeddings
+    from tq import get_local_embeddings
     embs = get_local_embeddings([query])
     query_emb = embs[0]
         
