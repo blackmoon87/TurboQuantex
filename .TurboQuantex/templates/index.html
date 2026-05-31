@@ -1,13 +1,13 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="en" dir="ltr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TurboQuantex Vector Search Engine</title>
-    <!-- Google Fonts: Alexandria (Arabic) and Outfit (English) -->
+    <!-- Google Fonts: Outfit -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Alexandria:wght@300;400;600;700&family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
     
     <style>
         :root {
@@ -29,7 +29,7 @@
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: 'Alexandria', 'Outfit', sans-serif;
+            font-family: 'Outfit', sans-serif;
             transition: all 0.3s ease;
         }
 
@@ -146,8 +146,8 @@
             display: flex;
             align-items: center;
             gap: 0.5rem;
-            border-right: 3px solid var(--secondary-glow);
-            padding-right: 0.75rem;
+            border-left: 3px solid var(--secondary-glow);
+            padding-left: 0.75rem;
         }
 
         /* Form styling */
@@ -175,7 +175,7 @@
         }
 
         textarea {
-            direction: rtl;
+            direction: ltr;
         }
 
         input:focus, textarea:focus, select:focus {
@@ -476,8 +476,8 @@
 
     <header class="glass-panel">
         <div class="header-title">
-            <h1>محرك البحث المتجه المتكامل (TurboQuantex Engine)</h1>
-            <p>نظام بحث دلالي فائق الضغط لمعالجة سياقات الكلمات الضخمة بأدنى استهلاك للذاكرة.</p>
+            <h1>TurboQuantex Engine Dashboard</h1>
+            <p>High-fidelity compressed vector database for local semantic codebase queries.</p>
         </div>
         <div class="badge-container">
             <div class="badge badge-gemini">
@@ -496,28 +496,26 @@
             
             <!-- Configuration Panel -->
             <div class="glass-panel">
-                <h2>إعدادات النظام والضغط</h2>
+                <h2>System & Quantization Settings</h2>
                 
-
-
                 <div class="form-group">
-                    <label>مستوى ضغط المتجهات (PolarQuant bits)</label>
+                    <label>Vector Quantization Rate (PolarQuant bits)</label>
                     <select id="quant-bits" onchange="updateConfig()">
-                        <option value="2" selected>2 bits (تخفيض حجم المتجهات 16 ضعفاً)</option>
-                        <option value="3">3 bits (تخفيض حجم المتجهات 10 أضعاف)</option>
-                        <option value="4">4 bits (تخفيض حجم المتجهات 8 أضعاف)</option>
+                        <option value="2" selected>2 bits (16x RAM reduction)</option>
+                        <option value="3">3 bits (10x RAM reduction)</option>
+                        <option value="4">4 bits (8x RAM reduction)</option>
                     </select>
                 </div>
 
                 <div class="form-group">
                     <label style="display: flex; justify-content: space-between; align-items: center;">
-                        <span>تفعيل تصحيح الفاقد QJL (1-bit sketch)</span>
+                        <span>Enable QJL Correction (1-bit sketch)</span>
                         <input type="checkbox" id="use-qjl" checked onchange="updateConfig()" style="transform: scale(1.2);">
                     </label>
                 </div>
 
                 <div class="form-group" id="qjl-dim-group">
-                    <label>أبعاد مصفوفة إسقاط QJL (QJL Sketch Dimensions)</label>
+                    <label>QJL Sketch Size (Dimensions)</label>
                     <select id="qjl-dim" onchange="updateConfig()">
                         <option value="64">64 bits</option>
                         <option value="128" selected>128 bits</option>
@@ -525,28 +523,28 @@
                     </select>
                 </div>
 
-                <button class="btn" style="width: 100%; margin-top: 0.5rem;" onclick="updateConfig(true)">حفظ وتطبيق الإعدادات</button>
+                <button class="btn" style="width: 100%; margin-top: 0.5rem;" onclick="updateConfig(true)">Save & Apply Settings</button>
             </div>
 
             <!-- Database Stats & Memory Panel -->
             <div class="glass-panel">
-                <h2>إحصائيات استهلاك الذاكرة</h2>
+                <h2>RAM Footprint Metrics</h2>
                 
                 <div class="metrics-grid">
                     <div class="metric-card">
                         <div class="metric-value" id="doc-count">0</div>
-                        <div class="metric-title">النصوص المكشفة</div>
+                        <div class="metric-title">Indexed Chunks</div>
                     </div>
                     <div class="metric-card">
                         <div class="metric-value" id="compression-ratio">0.0x</div>
-                        <div class="metric-title">نسبة ضغط المتجهات</div>
+                        <div class="metric-title">Compression Ratio</div>
                     </div>
                 </div>
 
                 <div class="memory-visualizer">
                     <div class="bar-container">
                         <div class="bar-header">
-                            <span>الحجم بدون ضغط (Float32)</span>
+                            <span>Uncompressed Size (Float32)</span>
                             <span id="mem-orig">0 Bytes</span>
                         </div>
                         <div class="bar-outer">
@@ -555,7 +553,7 @@
                     </div>
                     <div class="bar-container" style="margin-bottom: 0;">
                         <div class="bar-header">
-                            <span>الحجم بضغط TurboQuantex</span>
+                            <span>Compressed Size (TurboQuantex)</span>
                             <span id="mem-turbo">0 Bytes</span>
                         </div>
                         <div class="bar-outer">
@@ -572,44 +570,44 @@
             
             <!-- Indexing Interface -->
             <div class="glass-panel">
-                <h2>إضافة ونمذجة النصوص</h2>
+                <h2>Add & Index Documents</h2>
                 
                 <div class="form-group">
-                    <label>أدخل النص المراد إضافته إلى قاعدة المتجهات</label>
-                    <textarea id="doc-text" rows="3" placeholder="اكتب أو الصق فقرة نصية هنا للقيام بترميزها وضغطها دلالياً..."></textarea>
+                    <label>Enter text block to add to the vector database</label>
+                    <textarea id="doc-text" rows="3" placeholder="Type or paste text content here to generate and compress embeddings..."></textarea>
                 </div>
 
                 <div class="btn-group">
                     <button class="btn" id="btn-index" onclick="indexDocument()">
-                        <span>إضافة وتكشيف النص</span>
+                        <span>Index Document</span>
                     </button>
                     <button class="btn btn-secondary" onclick="loadMockData()">
-                        <span>تحميل نصوص تجريبية</span>
+                        <span>Load Mock Data</span>
                     </button>
                     <button class="btn btn-danger btn-secondary" onclick="resetDb()">
-                        <span>تصفير قاعدة البيانات</span>
+                        <span>Reset Database</span>
                     </button>
                 </div>
             </div>
 
             <!-- Search Console -->
             <div class="glass-panel">
-                <h2>محرك البحث الدلالي المتجه</h2>
+                <h2>Semantic Vector Search</h2>
                 
                 <div class="form-group" style="display: flex; gap: 1rem; margin-bottom: 1.5rem;">
-                    <input type="text" id="search-query" style="direction: rtl;" placeholder="أدخل عبارة البحث الدلالي..." onkeypress="handleSearchKeyPress(event)">
-                    <button class="btn" id="btn-search" style="padding: 0.75rem 2rem;" onclick="performSearch()">بحث</button>
+                    <input type="text" id="search-query" placeholder="Enter search query..." onkeypress="handleSearchKeyPress(event)">
+                    <button class="btn" id="btn-search" style="padding: 0.75rem 2rem;" onclick="performSearch()">Search</button>
                 </div>
 
                 <div class="search-metrics" id="search-metrics" style="display: none;">
-                    <span>سرعة ترميز الاستعلام: <strong id="time-embed">0</strong> ms</span>
-                    <span>زمن البحث بالمتجهات المضغوطة: <strong id="time-turbo">0</strong> ms</span>
-                    <span>دقة مطابقة الترتيب (Recall@K): <strong id="recall-k">0%</strong></span>
+                    <span>Embedding latency: <strong id="time-embed">0</strong> ms</span>
+                    <span>Turbo search latency: <strong id="time-turbo">0</strong> ms</span>
+                    <span>Recall at K accuracy: <strong id="recall-k">0%</strong></span>
                 </div>
 
                 <div class="results-list" id="results-container">
                     <div style="text-align: center; color: var(--text-muted); padding: 2rem;">
-                        أدخل نصوصاً ثم ابحث لمقارنة دقة وفعالية الخوارزمية المضغوطة.
+                        Index some documents and run search queries to compare compression accuracy and retrieval speeds.
                     </div>
                 </div>
             </div>
@@ -621,7 +619,7 @@
     <!-- Notification Toast -->
     <div id="toast" class="toast toast-success">
         <div class="toast-icon"></div>
-        <span id="toast-message">تمت العملية بنجاح!</span>
+        <span id="toast-message">Operation completed successfully!</span>
     </div>
 
     <script>
@@ -690,7 +688,7 @@
                     showToast(data.message, true);
                 }
             } catch (err) {
-                showToast('خطأ أثناء حفظ التكوين', true);
+                showToast('Failed to save configuration', true);
             }
         }
 
@@ -726,13 +724,13 @@
             const textarea = document.getElementById('doc-text');
             const text = textarea.value.trim();
             if (!text) {
-                showToast('الرجاء إدخال نص أولاً', true);
+                showToast('Please enter text first', true);
                 return;
             }
 
             const btn = document.getElementById('btn-index');
             btn.disabled = true;
-            btn.innerHTML = `<span class="spinner"></span> <span>جاري التضمين والضغط...</span>`;
+            btn.innerHTML = `<span class="spinner"></span> <span>Generating and compressing embeddings...</span>`;
 
             try {
                 const res = await fetch('/api/index', {
@@ -749,15 +747,15 @@
                     showToast(data.message, true);
                 }
             } catch (err) {
-                showToast('خطأ غير متوقع أثناء الفهرسة', true);
+                showToast('Unexpected error during indexing', true);
             } finally {
                 btn.disabled = false;
-                btn.innerHTML = `<span>إضافة وتكشيف النص</span>`;
+                btn.innerHTML = `<span>Index Document</span>`;
             }
         }
 
         async function loadMockData() {
-            showToast('جاري تحميل وتضمين البيانات التجريبية...');
+            showToast('Loading and indexing mock data...');
             try {
                 const res = await fetch('/api/mock_data', {
                     method: 'POST',
@@ -771,27 +769,27 @@
                     showToast(data.message, true);
                 }
             } catch (err) {
-                showToast('خطأ أثناء تحميل البيانات التجريبية', true);
+                showToast('Failed to load mock data', true);
             }
         }
 
         async function resetDb() {
-            if (!confirm('هل أنت متأكد من تصفير وحذف جميع المحتويات؟')) return;
+            if (!confirm('Are you sure you want to reset the database? This will clear all indexed vectors.')) return;
             try {
                 const res = await fetch('/api/reset', { method: 'POST' });
                 const data = await res.json();
                 if (data.status === 'success') {
-                    showToast('تم تصفير قاعدة المتجهات بنجاح');
+                    showToast('Database reset successfully');
                     fetchStatus();
                     document.getElementById('results-container').innerHTML = `
                         <div style="text-align: center; color: var(--text-muted); padding: 2rem;">
-                            أدخل نصوصاً ثم ابحث لمقارنة دقة وفعالية الخوارزمية المضغوطة.
+                            Index some documents and run search queries to compare compression accuracy and retrieval speeds.
                         </div>
                     `;
                     document.getElementById('search-metrics').style.display = 'none';
                 }
             } catch (err) {
-                showToast('فشلت عملية التصفير', true);
+                showToast('Failed to reset database', true);
             }
         }
 
@@ -799,13 +797,13 @@
             const queryInput = document.getElementById('search-query');
             const query = queryInput.value.trim();
             if (!query) {
-                showToast('الرجاء إدخال عبارة البحث', true);
+                showToast('Please enter a search query', true);
                 return;
             }
 
             const btn = document.getElementById('btn-search');
             btn.disabled = true;
-            btn.innerText = 'بحث...';
+            btn.innerText = 'Searching...';
 
             try {
                 const res = await fetch('/api/search', {
@@ -824,18 +822,18 @@
                     // Update results UI
                     const container = document.getElementById('results-container');
                     if (data.results.length === 0) {
-                        container.innerHTML = `<div style="text-align: center; color: var(--text-muted); padding: 2rem;">لم يتم العثور على نتائج مطابقة.</div>`;
+                        container.innerHTML = `<div style="text-align: center; color: var(--text-muted); padding: 2rem;">No matching results found.</div>`;
                         return;
                     }
 
                     container.innerHTML = data.results.map((r, i) => `
                         <div class="result-item">
                             <div class="result-header">
-                                <span class="result-rank">ترتيب TurboQuantex: #${i + 1}</span>
+                                <span class="result-rank">TurboQuantex Rank: #${i + 1}</span>
                                 <div class="score-comparison">
-                                    <div class="score-bubble score-turbo">شبه المتجه المقدر: <strong>${r.turbo_score}</strong></div>
-                                    <div class="score-bubble score-original">شبه المتجه الفعلي: <strong>${r.original_score}</strong></div>
-                                    <div class="score-bubble">الترتيب الأصلي غير المضغوط: <strong>#${r.original_rank}</strong></div>
+                                    <div class="score-bubble score-turbo">Estimated Cosine Sim: <strong>${r.turbo_score}</strong></div>
+                                    <div class="score-bubble score-original">Actual Cosine Sim: <strong>${r.original_score}</strong></div>
+                                    <div class="score-bubble">Uncompressed Rank: <strong>#${r.original_rank}</strong></div>
                                 </div>
                             </div>
                             <div class="result-text">${r.text}</div>
@@ -845,10 +843,10 @@
                     showToast(data.message, true);
                 }
             } catch (err) {
-                showToast('خطأ أثناء إجراء عملية البحث دلالياً', true);
+                showToast('Error performing semantic search', true);
             } finally {
                 btn.disabled = false;
-                btn.innerText = 'بحث';
+                btn.innerText = 'Search';
             }
         }
     </script>
