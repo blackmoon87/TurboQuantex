@@ -4,6 +4,8 @@ A highly memory-efficient vector search engine for codebase indexing and semanti
 
 This system allows developers and AI coding agents to semantically search massive, multi-file codebases in real-time with negligible memory footprints, avoiding the limitations of LLM context windows and Out-Of-Memory (OOM) errors.
 
+🌐 **Live Landing Page & RAM Simulator**: [https://blackmoon87.github.io/TurboQuantex/](https://blackmoon87.github.io/TurboQuantex/)
+
 All resources are completely isolated inside the `.TurboQuantex/` folder, ensuring no pollution of the developer's main project files or dependencies.
 
 ---
