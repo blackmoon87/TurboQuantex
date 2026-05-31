@@ -854,8 +854,8 @@
                 <div class="stat-label" data-i18n="stat_reduction_lbl">Memory Reduction</div>
             </div>
             <div class="stat-card">
-                <div class="stat-num" data-i18n="stat_latency">&lt;200ms</div>
-                <div class="stat-label" data-i18n="stat_latency_lbl">Daemon Search Latency</div>
+                <div class="stat-num" data-i18n="stat_latency">&lt;9ms</div>
+                <div class="stat-label" data-i18n="stat_latency_lbl">Warm Query Latency</div>
             </div>
             <div class="stat-card">
                 <div class="stat-num" data-i18n="stat_offline">100%</div>
@@ -894,8 +894,16 @@
                 <div class="feature-item">
                     <div class="feature-icon"><i class="fa-solid fa-microchip"></i></div>
                     <div class="feature-info">
-                        <h3 data-i18n="feature3_title">Background Daemon Acceleration</h3>
-                        <p data-i18n="feature3_desc">Runs a background Flask daemon to cache SentenceTransformer model in memory, dropping query search latencies to milliseconds.</p>
+                        <h3 data-i18n="feature3_title">Daemon & Auto File Watcher</h3>
+                        <p data-i18n="feature3_desc">Background daemon caches the ONNX model in memory for &lt;9ms queries. Built-in file watcher monitors project changes and auto-updates the vector index — no manual commands needed.</p>
+                    </div>
+                </div>
+
+                <div class="feature-item">
+                    <div class="feature-icon"><i class="fa-solid fa-robot"></i></div>
+                    <div class="feature-info">
+                        <h3 data-i18n="feature4_title">Agent-First JSON & Batch API</h3>
+                        <p data-i18n="feature4_desc">All CLI commands support --format json for machine-readable output. Batch search runs multiple queries in one index load. Language and scope metadata enrich every result.</p>
                     </div>
                 </div>
             </div>
@@ -990,14 +998,27 @@
                     </div>
                     <span style="font-size: 0.85rem; color: var(--text-secondary);" id="tab-filename">cli_run.sh</span>
                 </div>
-                <div class="code-content" id="code-box"># Step 1: Scan and Index a project recursively
-python tq.py index --dir example_project --index index.tq
+                <div class="code-content" id="code-box"># Step 1: Index your project codebase
+python .TurboQuantex/tq.py index --dir . --index .TurboQuantex/index.tq
 
-# Step 2: Query the quantized codebase semantically
-python tq.py search --index index.tq --query "database user insert logic" --top-k 2
+# Step 2: Semantic search (human-readable)
+python .TurboQuantex/tq.py search --index .TurboQuantex/index.tq --query "user auth login" --top-k 5
 
-# Step 3: Incrementally update modified/new files only
-python tq.py update --dir example_project --index index.tq</div>
+# Step 3: JSON output for AI agents
+python .TurboQuantex/tq.py search --index .TurboQuantex/index.tq --query "user auth" --format json
+
+# Step 4: Batch search (multiple queries, single index load)
+python .TurboQuantex/tq.py search-batch --index .TurboQuantex/index.tq --queries "auth,database,upload" --format json
+
+# Step 5: Filter by language
+python .TurboQuantex/tq.py search --index .TurboQuantex/index.tq --query "handler" --language python
+
+# Step 6: Start daemon with auto file watcher
+python .TurboQuantex/app.py
+# File watcher auto-updates index on every file change — no manual update needed
+
+# Step 7: Check daemon health
+curl http://127.0.0.1:59402/api/health</div>
             </div>
         </section>
 
@@ -1052,8 +1073,8 @@ python tq.py update --dir example_project --index index.tq</div>
                 btn_get_started: "Get Started",
                 stat_reduction: "14.2x",
                 stat_reduction_lbl: "Memory Reduction",
-                stat_latency: "<200ms",
-                stat_latency_lbl: "Daemon Search Latency",
+                stat_latency: "<9ms",
+                stat_latency_lbl: "Warm Query Latency",
                 stat_offline: "100%",
                 stat_offline_lbl: "Offline & Private",
                 stat_fidelity: "98.4%",
@@ -1064,8 +1085,10 @@ python tq.py update --dir example_project --index index.tq</div>
                 feature1_desc: "Learns optimal centroid placement for rotated high-dimensional embedding values to maximize quantization efficiency.",
                 feature2_title: "Johnson-Lindenstrauss Correction",
                 feature2_desc: "Recovers reconstruction error dynamically by projecting residual vectors onto a 1-bit orthogonal sketch space.",
-                feature3_title: "Background Daemon Acceleration",
-                feature3_desc: "Runs a background Flask daemon to cache SentenceTransformer model in memory, dropping query search latencies to milliseconds.",
+                feature3_title: "Daemon & Auto File Watcher",
+                feature3_desc: "Background daemon caches the ONNX model in memory for <9ms queries. Built-in file watcher monitors project changes and auto-updates the vector index — no manual commands needed.",
+                feature4_title: "Agent-First JSON & Batch API",
+                feature4_desc: "All CLI commands support --format json for machine-readable output. Batch search runs multiple queries in one index load. Language and scope metadata enrich every result.",
                 sim_header: "Local Quantization Simulator",
                 sim_input_lbl: "1. Enter Sample Text / Code Snippet",
                 sim_input_placeholder: "public function registerUser($email, $password)",
@@ -1126,8 +1149,8 @@ python tq.py update --dir example_project --index index.tq</div>
                 btn_get_started: "ابدأ الآن",
                 stat_reduction: "14.2x",
                 stat_reduction_lbl: "تقليل استهلاك الذاكرة",
-                stat_latency: "أقل من 200ms",
-                stat_latency_lbl: "سرعة البحث عبر الخادم الخلفي",
+                stat_latency: "أقل من 9ms",
+                stat_latency_lbl: "سرعة البحث (المحرك جاهز)",
                 stat_offline: "100%",
                 stat_offline_lbl: "أمن وخصوصية تامة",
                 stat_fidelity: "98.4%",
@@ -1138,8 +1161,10 @@ python tq.py update --dir example_project --index index.tq</div>
                 feature1_desc: "يتعلم أفضل توزيع للمراكز لمتجهات الأبعاد المدورة لتحقيق أقصى كفاءة تكميم ممكنة.",
                 feature2_title: "تصحيح Johnson-Lindenstrauss",
                 feature2_desc: "يسترجع أخطاء إعادة البناء ديناميكياً عن طريق إسقاط المتجهات المتبقية في فضاء ترميز 1-بت متعامد.",
-                feature3_title: "خادم التسريع الخلفي (Daemon)",
-                feature3_desc: "يشغل خادم Flask خلفي لتخزين نموذج SentenceTransformer في الذاكرة، مما يقلل وقت البحث لملي ثوانٍ معدودة.",
+                feature3_title: "خادم خلفي ومراقب تلقائي للملفات",
+                feature3_desc: "يشغل خادم خلفي يُبقي النموذج محملاً للاستعلامات بأقل من 9 مللي ثانية. مراقب الملفات يكتشف التغييرات ويحدّث الفهرس تلقائياً — بدون أوامر يدوية.",
+                feature4_title: "واجهة JSON وبحث مجمّع للوكلاء الذكيين",
+                feature4_desc: "جميع أوامر CLI تدعم --format json لإخراج يقرأه الذكاء الصناعي. البحث المجمّع يشغّل استعلامات متعددة بتحميل فهرس واحد. بيانات اللغة والسياق تُثري كل نتيجة.",
                 sim_header: "محاكي تكميم المتجهات المحلي",
                 sim_input_lbl: "1. أدخل نصاً تجريبياً أو كوداً برمجياً",
                 sim_input_placeholder: "public function registerUser($email, $password)",
@@ -1212,8 +1237,10 @@ python tq.py update --dir example_project --index index.tq</div>
                 feature1_desc: "针对旋转的高维嵌入向量，智能学习最佳中心点位置，从而最大化量化效率。",
                 feature2_title: "Johnson-Lindenstrauss 纠错机制",
                 feature2_desc: "通过将残差向量投影到 1 位正交草图空间，动态恢复重建误差。",
-                feature3_title: "后台守护进程加速",
-                feature3_desc: "运行 Flask 后台守护进程以在内存中缓存 SentenceTransformer 模型，将搜索延迟降低到毫秒级。",
+                feature3_title: "后台守护进程与自动文件监控",
+                feature3_desc: "后台守护进程将 ONNX 模型缓存在内存中，实现不到 9 毫秒的查询速度。内置文件监控器自动检测项目变更并更新向量索引 — 无需手动命令。",
+                feature4_title: "AI 代理优先的 JSON 与批量 API",
+                feature4_desc: "所有 CLI 命令支持 --format json 输出。批量搜索在一次索引加载中运行多个查询。语言和作用域元数据丰富每个结果。",
                 sim_header: "本地量化模拟器",
                 sim_input_lbl: "1. 输入示例文本/代码片段",
                 sim_input_placeholder: "public function registerUser($email, $password)",
@@ -1274,8 +1301,8 @@ python tq.py update --dir example_project --index index.tq</div>
                 btn_get_started: "Начать работу",
                 stat_reduction: "14.2x",
                 stat_reduction_lbl: "Снижение требований к ОЗУ",
-                stat_latency: "<200 мс",
-                stat_latency_lbl: "Задержка локального демона",
+                stat_latency: "<9 мс",
+                stat_latency_lbl: "Задержка (прогретый движок)",
                 stat_offline: "100%",
                 stat_offline_lbl: "Безопасно и конфиденциально",
                 stat_fidelity: "98.4%",
@@ -1286,8 +1313,10 @@ python tq.py update --dir example_project --index index.tq</div>
                 feature1_desc: "Находит оптимальное расположение центроидов для повернутых высокоразмерных векторов, обеспечивая максимальную плотность квантования.",
                 feature2_title: "Коррекция Джонсона-Линденштрауса",
                 feature2_desc: "Динамически компенсирует ошибку квантования путем проецирования векторов невязки на 1-битное ортогональное пространство.",
-                feature3_title: "Ускорение Фоновым Демоном",
-                feature3_desc: "Запускает фоновую службу Flask для кэширования модели SentenceTransformer в ОЗУ, сводя время поиска к миллисекундам.",
+                feature3_title: "Фоновый демон и авто-мониторинг файлов",
+                feature3_desc: "Фоновый демон кэширует ONNX-модель для запросов менее 9 мс. Встроенный монитор файлов отслеживает изменения и автоматически обновляет индекс — без ручных команд.",
+                feature4_title: "JSON и пакетный API для AI-агентов",
+                feature4_desc: "Все CLI-команды поддерживают --format json. Пакетный поиск выполняет несколько запросов за одну загрузку индекса. Метаданные языка и области обогащают каждый результат.",
                 sim_header: "Симулятор Квантования Векторов",
                 sim_input_lbl: "1. Введите пример текста или кода",
                 sim_input_placeholder: "public function registerUser($email, $password)",
@@ -1373,15 +1402,23 @@ ${dict.code_cli_comment3}
 python tq.py update --dir example_project --index index.tq`;
             } else if (tab === 'skill') {
                 filename.innerText = 'app_skill.py';
-                codeBox.innerHTML = `from turboquantex_skill import index_codebase, query_codebase, update_codebase
+                codeBox.innerHTML = `from turboquantex_skill import index_codebase, query_codebase, update_codebase, query_codebase_batch
 
 ${dict.code_skill_comment1}
-stats = index_codebase(dir_path="example_project", index_file="db.tq", bits="auto")
+stats = index_codebase(dir_path=".", index_file=".TurboQuantex/index.tq", bits="auto")
 print(f"Compressed database size: {stats['disk_size_kb']} KB")
 
 ${dict.code_skill_comment2}
-matches = query_codebase(index_file="db.tq", query="calculate sum list values", top_k=1)
-print(f"Match: {matches[0]['file_path']} on Line {matches[0]['start_line']}")`;
+matches = query_codebase(index_file=".TurboQuantex/index.tq", query="password hashing logic", top_k=3)
+for m in matches:
+    print(f"{m['file_path']}:{m['start_line']} [{m['language']}] score={m['score']:.4f}")
+
+# Batch search \u2014 multiple queries, single index load
+batch = query_codebase_batch(
+    index_file=".TurboQuantex/index.tq",
+    queries=["auth middleware", "database connection", "file upload"],
+    top_k=3
+)`;
             } else if (tab === 'setup') {
                 filename.innerText = 'setup_command.sh';
                 codeBox.innerHTML = `${dict.code_setup_clone}
