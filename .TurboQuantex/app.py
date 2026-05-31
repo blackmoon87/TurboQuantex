@@ -1,10 +1,13 @@
 import os
 import time
+import threading
+import logging
 import numpy as np
 from flask import Flask, request, jsonify, render_template
 from turboquantex import TurboQuantex
 
 app = Flask(__name__, template_folder="templates")
+app_start_time = time.time()
 
 # In-memory database of documents
 # Schema:
@@ -30,6 +33,136 @@ config = {
 # Local model cache
 local_model = None
 turboquantex_engine = None
+
+# File watcher state
+watcher_thread = None
+watcher_last_update_info = {"last_run": 0, "changes_detected": 0, "status": "idle"}
+
+class FileWatcher:
+    """
+    Background file watcher that monitors the project directory for changes
+    and auto-updates the TurboQuantex index using mtime-based polling.
+    No external dependencies — uses only stdlib threading + os.path.
+    """
+    
+    def __init__(self, project_dir, index_file, poll_interval=10, debounce_seconds=5):
+        self.project_dir = os.path.abspath(project_dir)
+        self.index_file = os.path.abspath(index_file)
+        self.poll_interval = poll_interval
+        self.debounce_seconds = debounce_seconds
+        self._stop_event = threading.Event()
+        self._thread = None
+        self._last_mtimes = {}
+        self._last_change_time = 0
+        self._pending_update = False
+        self.logger = logging.getLogger("TurboQuantex.FileWatcher")
+    
+    def _scan_mtimes(self):
+        """Scans project directory and returns dict of {rel_path: mtime}."""
+        from tq import DEFAULT_EXCLUDES, IGNORED_EXTENSIONS
+        mtimes = {}
+        try:
+            for root, dirs, files in os.walk(self.project_dir):
+                dirs[:] = [d for d in dirs if d not in DEFAULT_EXCLUDES]
+                for fname in files:
+                    ext = os.path.splitext(fname)[1].lower()
+                    if ext in IGNORED_EXTENSIONS:
+                        continue
+                    full_path = os.path.join(root, fname)
+                    rel_path = os.path.relpath(full_path, self.project_dir)
+                    try:
+                        mtimes[rel_path] = os.path.getmtime(full_path)
+                    except OSError:
+                        pass
+        except Exception as e:
+            self.logger.warning(f"Scan error: {e}")
+        return mtimes
+    
+    def _has_changes(self, current_mtimes):
+        """Compares current mtimes against last known state."""
+        if not self._last_mtimes:
+            self._last_mtimes = current_mtimes
+            return False
+        
+        old_keys = set(self._last_mtimes.keys())
+        new_keys = set(current_mtimes.keys())
+        
+        # Deleted or new files
+        if old_keys != new_keys:
+            return True
+        
+        # Modified files
+        for rel_path, mtime in current_mtimes.items():
+            if rel_path in self._last_mtimes:
+                if abs(mtime - self._last_mtimes[rel_path]) > 1e-4:
+                    return True
+        return False
+    
+    def _run_update(self):
+        """Runs incremental index update."""
+        global watcher_last_update_info
+        try:
+            from turboquantex_skill import update_codebase
+            result = update_codebase(
+                dir_path=self.project_dir,
+                index_file=self.index_file
+            )
+            watcher_last_update_info = {
+                "last_run": time.time(),
+                "changes_detected": watcher_last_update_info.get("changes_detected", 0) + 1,
+                "status": result.get("status", "updated"),
+                "chunks": result.get("chunks", 0)
+            }
+            self.logger.info(f"Auto-update: {result.get('status', 'done')}")
+        except Exception as e:
+            watcher_last_update_info["status"] = f"error: {str(e)[:100]}"
+            self.logger.error(f"Auto-update failed: {e}")
+    
+    def _loop(self):
+        """Main polling loop with debounce."""
+        self.logger.info(f"File watcher started. Monitoring: {self.project_dir}")
+        self.logger.info(f"Poll interval: {self.poll_interval}s, Debounce: {self.debounce_seconds}s")
+        
+        # Initial scan to establish baseline
+        self._last_mtimes = self._scan_mtimes()
+        
+        while not self._stop_event.is_set():
+            self._stop_event.wait(self.poll_interval)
+            if self._stop_event.is_set():
+                break
+            
+            current_mtimes = self._scan_mtimes()
+            
+            if self._has_changes(current_mtimes):
+                self._last_change_time = time.time()
+                self._pending_update = True
+                self._last_mtimes = current_mtimes
+            
+            # Debounce: only update if no changes in the last N seconds
+            if self._pending_update:
+                elapsed = time.time() - self._last_change_time
+                if elapsed >= self.debounce_seconds:
+                    self._pending_update = False
+                    self._run_update()
+                    # Refresh mtimes after update (index file itself changes)
+                    self._last_mtimes = self._scan_mtimes()
+        
+        self.logger.info("File watcher stopped.")
+    
+    def start(self):
+        if self._thread and self._thread.is_alive():
+            return
+        self._stop_event.clear()
+        self._thread = threading.Thread(target=self._loop, daemon=True, name="TQ-FileWatcher")
+        self._thread.start()
+    
+    def stop(self):
+        self._stop_event.set()
+        if self._thread:
+            self._thread.join(timeout=5)
+    
+    def is_alive(self):
+        return self._thread is not None and self._thread.is_alive()
 
 def get_embedding_dim() -> int:
     return 384
@@ -425,6 +558,8 @@ def local_query():
                 "start_line": doc["start_line"],
                 "end_line": doc["end_line"],
                 "text": doc["text"],
+                "language": doc.get("language", "unknown"),
+                "scope": doc.get("scope", ""),
                 "score": round(score, 4)
             })
             
@@ -503,6 +638,53 @@ def load_mock_data():
         "message": f"Successfully indexed {indexed} mock documents.",
         "errors_count": len(errors_list)
     })
+
+@app.route("/api/health", methods=["GET"])
+def health_check():
+    """Returns daemon health status including uptime, model, and watcher state."""
+    index_paths = [
+        os.path.join(os.getcwd(), ".TurboQuantex", "index.tq"),
+        os.path.join(os.path.dirname(os.path.abspath(__file__)), "index.tq")
+    ]
+    return jsonify({
+        "status": "ok",
+        "uptime_seconds": round(time.time() - app_start_time, 1),
+        "model_loaded": local_model is not None,
+        "index_detected": any(os.path.exists(p) for p in index_paths),
+        "file_watcher": {
+            "active": watcher_thread is not None and watcher_thread.is_alive(),
+            "last_run": watcher_last_update_info.get("last_run", 0),
+            "changes_detected": watcher_last_update_info.get("changes_detected", 0),
+            "status": watcher_last_update_info.get("status", "idle")
+        }
+    })
+
 if __name__ == "__main__":
     os.makedirs("templates", exist_ok=True)
+    
+    # Configure logging
+    logging.basicConfig(
+        level=logging.INFO,
+        format="[%(asctime)s] [%(name)s] %(message)s",
+        datefmt="%H:%M:%S"
+    )
+    
+    # Auto-detect project root and index file
+    daemon_dir = os.path.dirname(os.path.abspath(__file__))
+    project_dir = os.path.dirname(daemon_dir)  # parent of .TurboQuantex/
+    index_file = os.path.join(daemon_dir, "index.tq")
+    
+    # Start file watcher if index exists
+    if os.path.exists(index_file):
+        watcher_thread = FileWatcher(
+            project_dir=project_dir,
+            index_file=index_file,
+            poll_interval=10,
+            debounce_seconds=5
+        )
+        watcher_thread.start()
+        print(f"[+] File watcher active. Monitoring: {project_dir}")
+    else:
+        print(f"[!] No index.tq found. File watcher disabled. Run 'tq.py index' first.")
+    
     app.run(host="127.0.0.1", port=59402, debug=False)

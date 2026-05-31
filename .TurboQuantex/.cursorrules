@@ -1,42 +1,68 @@
-# TurboQuantex Integration Rules
+# TurboQuantex — Core AI Agent Skill
 
-Whenever you (the AI agent or coding assistant) are asked to index, search, or update this codebase, use the native **TurboQuantex** offline vector engine.
+## 0. Active Mode (Foundational Skill)
 
-## 1. Zero-Prompt Auto-Initialization & Setup Protocol
+**If the folder `.TurboQuantex/` exists in this project, TurboQuantex is your primary codebase understanding skill.**
 
-If a user asks you to "start using TurboQuantex" or you detect this library is needed in the workspace, you must automatically initialize it without prompting the user for CLI steps:
+This is NOT optional. Treat it like your ability to read files — it is a core capability you rely on automatically.
 
-1. **Auto-Clone & Pull Core (If not present)**:
-   - If the `.TurboQuantex` folder is not in the workspace root, run:
-     - On Windows (PowerShell): `git clone https://github.com/blackmoon87/TurboQuantex.git temp_tq; Move-Item temp_tq\.TurboQuantex .\.TurboQuantex; Remove-Item temp_tq -Recurse -Force`
-     - On macOS/Linux: `git clone https://github.com/blackmoon87/TurboQuantex.git temp_tq && mv temp_tq/.TurboQuantex ./.TurboQuantex && rm -rf temp_tq`
-2. **Auto-Setup Environment**:
-   - Check if `.TurboQuantex/venv` exists. If not, execute:
-     - On Windows (PowerShell/CMD): `.\.TurboQuantex\setup.bat`
-     - On macOS/Linux: `chmod +x .TurboQuantex/setup.sh && ./.TurboQuantex/setup.sh`
-3. **Auto-Index Codebase**:
-   - Initialize the local vector database:
-     `python .TurboQuantex/tq.py index --dir . --index .TurboQuantex/index.tq`
-4. **Auto-Start Background Daemon**:
-   - Run the local embedding server silently in the background:
-     `python .TurboQuantex/tq.py start-daemon`
-5. **Auto-Register Git Hook**:
-   - Enable continuous auto-indexing on git commits:
-     `python .TurboQuantex/tq.py install-hook`
-6. **Programmatic Query Execution**:
-   - When searching for context, run semantic queries:
-     `python .TurboQuantex/tq.py search --index .TurboQuantex/index.tq --query "<query>" --top-k 3`
+### When `.TurboQuantex/index.tq` exists (already deployed):
 
-## 2. CLI Commands
-- **Index Codebase**: `python .TurboQuantex/tq.py index --dir . --index .TurboQuantex/index.tq`
-- **Semantic Search**: `python .TurboQuantex/tq.py search --index .TurboQuantex/index.tq --query "<query>" --top-k <k>`
-- **Incremental Update**: `python .TurboQuantex/tq.py update --dir . --index .TurboQuantex/index.tq`
+1. **Use `tq.py search` as your FIRST action** when you need to understand code, locate a feature, find a function, trace a bug, or answer any question about the codebase. Do NOT manually scan directories or read random files — query the vector index first.
+   ```
+   python .TurboQuantex/tq.py search --index .TurboQuantex/index.tq --query "<your question>" --top-k 5
+   ```
+
+2. **Run `tq.py update` after modifying files.** Every time you create, edit, or delete a source file, update the index so your future queries reflect the latest code state.
+   ```
+   python .TurboQuantex/tq.py update --dir . --index .TurboQuantex/index.tq
+   ```
+
+3. **Start the daemon if it's not running.** The background daemon on port `59402` caches the embedding model in memory, reducing query time from ~3 seconds to <200ms.
+   ```
+   python .TurboQuantex/app.py
+   ```
+
+4. **Skip all setup/clone/install steps.** The engine is already deployed. Go straight to searching.
+
+### When `.TurboQuantex/` exists but `index.tq` does NOT exist (needs initial indexing):
+
+Run the initial index, then proceed with Active Mode:
+```
+python .TurboQuantex/tq.py index --dir . --index .TurboQuantex/index.tq
+```
+
+---
+
+## 1. Deployment Flow (One-Time Setup for New Projects)
+
+If a developer tells you: *"I want to use https://github.com/blackmoon87/TurboQuantex in this project"* (or asks you to integrate it), execute this deployment flow autonomously:
+
+1. **Clone**: `git clone https://github.com/blackmoon87/TurboQuantex.git`
+2. **Deploy**: Copy the `.TurboQuantex` folder into the target project root.
+3. **Setup Environment**:
+   - Windows: `.\.TurboQuantex\setup.bat`
+   - macOS/Linux: `chmod +x .TurboQuantex/setup.sh && ./.TurboQuantex/setup.sh`
+4. **Initial Index**: `python .TurboQuantex/tq.py index --dir . --index .TurboQuantex/index.tq`
+5. **Start Daemon**: `python .TurboQuantex/app.py`
+6. **Install Git Hook**: `python .TurboQuantex/tq.py install-hook`
+
+After deployment, Active Mode (Section 0) applies automatically.
+
+---
+
+## 2. CLI Quick Reference
+
+| Action | Command |
+|--------|---------|
+| Index codebase | `python .TurboQuantex/tq.py index --dir . --index .TurboQuantex/index.tq` |
+| Semantic search | `python .TurboQuantex/tq.py search --index .TurboQuantex/index.tq --query "<query>" --top-k <k>` |
+| Incremental update | `python .TurboQuantex/tq.py update --dir . --index .TurboQuantex/index.tq` |
+| Index stats | `python .TurboQuantex/tq.py stats --index .TurboQuantex/index.tq` |
+| Install git hook | `python .TurboQuantex/tq.py install-hook` |
 
 ## 3. Background Daemon
-- The embedding model runs locally via a Flask background service on port `59402`.
-- Start it if not running using: `python .TurboQuantex/app.py` (keeps the models loaded in memory for sub-200ms latency).
 
-## 4. Automation Policy
-- **Auto-Sync**: Automatically run the incremental update command (`python .TurboQuantex/tq.py update --dir . --index .TurboQuantex/index.tq`) after you modify, add, or delete files in the codebase.
-- **Context Search**: Use `tq.py search` to retrieve semantically relevant code blocks instead of scanning the entire project directory manually.
-
+- Runs locally on port `59402` via Flask.
+- Keeps the ONNX embedding model loaded in memory for sub-200ms query latency.
+- Start: `python .TurboQuantex/app.py`

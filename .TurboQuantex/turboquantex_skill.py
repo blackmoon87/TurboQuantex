@@ -14,7 +14,7 @@ from typing import List, Dict, Any
 
 # Ensure the local path is included for imports
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-from tq import CodebaseIndexer
+from tq import CodebaseIndexer, INDEX_VERSION, INDEX_MODEL_ID
 from turboquantex import TurboQuantex
 
 def index_codebase(
@@ -82,6 +82,8 @@ def index_codebase(
             "start_line": chunk["start_line"],
             "end_line": chunk["end_line"],
             "text": chunk["text"],
+            "language": chunk.get("language", "unknown"),
+            "scope": chunk.get("scope", ""),
             "norm_x": norm_x,
             "indices": indices.astype(np.uint8),
             "q_res_packed": q_res_packed,
@@ -89,6 +91,8 @@ def index_codebase(
         })
         
     index_data = {
+        "version": INDEX_VERSION,
+        "model_id": INDEX_MODEL_ID,
         "config": {
             "embedding_mode": "local",
             "dim": dim,
@@ -252,6 +256,11 @@ def query_codebase(
         
     with open(index_file, "rb") as f:
         index_data = pickle.load(f)
+    
+    # Version check
+    version = index_data.get("version", 1)
+    if version < INDEX_VERSION:
+        raise ValueError(f"Index version {version} is outdated (current: {INDEX_VERSION}). Please re-index.")
         
     config = index_data["config"]
     documents = index_data["documents"]
@@ -295,9 +304,86 @@ def query_codebase(
             "start_line": doc["start_line"],
             "end_line": doc["end_line"],
             "text": doc["text"],
+            "language": doc.get("language", "unknown"),
+            "scope": doc.get("scope", ""),
             "score": sim
         })
         
     # Sort and return top_k
     results.sort(key=lambda x: x["score"], reverse=True)
     return results[:top_k]
+
+def query_codebase_batch(
+    index_file: str,
+    queries: List[str],
+    top_k: int = 3
+) -> Dict[str, List[Dict[str, Any]]]:
+    """
+    Runs multiple queries against the index with a single load.
+    Returns a dict mapping each query string to its list of results.
+    """
+    if not os.path.exists(index_file):
+        raise ValueError(f"Index file '{index_file}' does not exist.")
+        
+    with open(index_file, "rb") as f:
+        index_data = pickle.load(f)
+    
+    version = index_data.get("version", 1)
+    if version < INDEX_VERSION:
+        raise ValueError(f"Index version {version} is outdated (current: {INDEX_VERSION}). Please re-index.")
+    
+    config = index_data["config"]
+    documents = index_data["documents"]
+    
+    if not documents:
+        return {q: [] for q in queries}
+    
+    from tq import get_local_embeddings
+    query_embs = get_local_embeddings(queries)
+    
+    engine = TurboQuantex(
+        dim=config["dim"],
+        bits=config["bits"],
+        use_qjl=config["use_qjl"],
+        qjl_dim=config["qjl_dim"],
+        seed=config["seed"]
+    )
+    
+    # Pre-unpack QJL bits
+    doc_qres = []
+    for doc in documents:
+        q_res = None
+        if doc["q_res_packed"] is not None:
+            q_res = np.unpackbits(doc["q_res_packed"])[:config["qjl_dim"]].astype(bool)
+        doc_qres.append(q_res)
+    
+    all_results = {}
+    for qi, query in enumerate(queries):
+        query_emb = query_embs[qi]
+        query_norm = np.linalg.norm(query_emb)
+        query_norm_u = query_emb / (query_norm + 1e-8) if query_norm > 1e-8 else query_emb
+        
+        results = []
+        for di, doc in enumerate(documents):
+            sim = engine.estimate_inner_product(
+                doc["norm_x"],
+                doc["indices"].astype(np.int32),
+                doc_qres[di],
+                doc["norm_res"],
+                query_norm_u
+            )
+            sim = float(np.clip(sim, -1.0, 1.0))
+            results.append({
+                "file_path": doc["file_path"],
+                "start_line": doc["start_line"],
+                "end_line": doc["end_line"],
+                "text": doc["text"],
+                "language": doc.get("language", "unknown"),
+                "scope": doc.get("scope", ""),
+                "score": sim
+            })
+        
+        results.sort(key=lambda x: x["score"], reverse=True)
+        all_results[query] = results[:top_k]
+    
+    return all_results

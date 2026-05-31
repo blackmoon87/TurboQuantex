@@ -20,6 +20,20 @@ IGNORED_EXTENSIONS = {
     '.tar', '.gz', '.db', '.sqlite', '.exe', '.dll', '.so', '.bin'
 }
 
+# Index format version and model identifier
+INDEX_VERSION = 2
+INDEX_MODEL_ID = "all-MiniLM-L6-v2"
+
+# Language detection map
+LANG_MAP = {
+    '.py': 'python', '.php': 'php', '.js': 'javascript',
+    '.ts': 'typescript', '.go': 'go', '.java': 'java',
+    '.cpp': 'cpp', '.c': 'c', '.cs': 'csharp', '.rb': 'ruby',
+    '.rs': 'rust', '.swift': 'swift', '.kt': 'kotlin',
+    '.sh': 'shell', '.bash': 'shell', '.html': 'html',
+    '.css': 'css', '.sql': 'sql', '.md': 'markdown',
+}
+
 import urllib.request
 import json
 import subprocess
@@ -192,6 +206,7 @@ def get_local_embeddings(texts: List[str]) -> List[np.ndarray]:
         
     global _local_model_cache
     if _local_model_cache is None:
+        print("[!] Warning: Daemon unavailable. Using cold local model (slower).", file=sys.stderr)
         _local_model_cache = ONNXEmbedder()
     return _local_model_cache.encode(texts)
 
@@ -215,6 +230,7 @@ class CodebaseIndexer:
             return []
 
         ext = os.path.splitext(file_path)[1].lower()
+        detected_language = LANG_MAP.get(ext, "unknown")
         is_code = ext in {'.py', '.php', '.js', '.ts', '.go', '.java', '.cpp', '.c', '.cs'}
         
         current_chunk_lines = []
@@ -252,7 +268,9 @@ class CodebaseIndexer:
                     "start_line": start_line,
                     "end_line": line_num - 1,
                     "text": chunk_text,
-                    "embedding_text": context_header + chunk_text
+                    "embedding_text": context_header + chunk_text,
+                    "language": detected_language,
+                    "scope": active_context
                 })
                 current_chunk_lines = []
                 current_chunk_len = 0
@@ -274,7 +292,9 @@ class CodebaseIndexer:
                     "start_line": start_line,
                     "end_line": line_num,
                     "text": chunk_text,
-                    "embedding_text": context_header + chunk_text
+                    "embedding_text": context_header + chunk_text,
+                    "language": detected_language,
+                    "scope": active_context
                 })
                 
                 # Overlap implementation
@@ -295,7 +315,9 @@ class CodebaseIndexer:
                 "start_line": start_line,
                 "end_line": len(lines),
                 "text": chunk_text,
-                "embedding_text": context_header + chunk_text
+                "embedding_text": context_header + chunk_text,
+                "language": detected_language,
+                "scope": active_context
             })
             
         return chunks
@@ -399,6 +421,8 @@ def run_indexing(args):
             "start_line": chunk["start_line"],
             "end_line": chunk["end_line"],
             "text": chunk["text"],
+            "language": chunk.get("language", "unknown"),
+            "scope": chunk.get("scope", ""),
             "norm_x": norm_x,
             "indices": indices.astype(np.uint8), # indices are between 0 and 15, so uint8 is plenty
             "q_res_packed": q_res_packed,
@@ -418,6 +442,8 @@ def run_indexing(args):
 
     # Save to disk using pickle
     index_data = {
+        "version": INDEX_VERSION,
+        "model_id": INDEX_MODEL_ID,
         "config": {
             "embedding_mode": "local",
             "dim": dim,
@@ -436,39 +462,75 @@ def run_indexing(args):
     print(f"[+] Saved TurboQuantex codebase index to: {args.index}")
     show_stats_data(index_data, args.index)
 
+def _check_index_version(index_data: Dict[str, Any]):
+    """Validates index version compatibility. Exits with clear message if outdated."""
+    version = index_data.get("version", 1)
+    if version < INDEX_VERSION:
+        print(f"Error: Index was created with version {version}, current version is {INDEX_VERSION}. Please re-index with: python .TurboQuantex/tq.py index --dir . --index .TurboQuantex/index.tq")
+        sys.exit(1)
+
 def run_update(args):
-    print(f"[*] Incrementally updating codebase index: {args.index}")
+    use_json = getattr(args, 'format', 'text') == 'json'
+    if not use_json:
+        print(f"[*] Incrementally updating codebase index: {args.index}")
     from turboquantex_skill import update_codebase
     try:
         res = update_codebase(
             dir_path=args.dir,
             index_file=args.index
         )
-        print(f"[+] Update status: {res['status']}")
         
-        # Load updated index for stats printing
-        with open(args.index, "rb") as f:
-            index_data = pickle.load(f)
-        show_stats_data(index_data, args.index)
+        if use_json:
+            print(json.dumps(res))
+        else:
+            print(f"[+] Update status: {res['status']}")
+            # Load updated index for stats printing
+            with open(args.index, "rb") as f:
+                index_data = pickle.load(f)
+            show_stats_data(index_data, args.index)
     except Exception as e:
-        print(f"[-] Error updating codebase: {e}")
+        if use_json:
+            print(json.dumps({"status": "error", "message": str(e)}))
+        else:
+            print(f"[-] Error updating codebase: {e}")
         sys.exit(1)
 
 def run_search(args):
+    use_json = getattr(args, 'format', 'text') == 'json'
+    
     if not os.path.exists(args.index):
-        print(f"Error: Index file '{args.index}' does not exist. Run 'index' command first.")
+        if use_json:
+            print(json.dumps({"status": "error", "message": f"Index file '{args.index}' does not exist."}))
+        else:
+            print(f"Error: Index file '{args.index}' does not exist. Run 'index' command first.")
         sys.exit(1)
         
     # Load index data
     with open(args.index, "rb") as f:
         index_data = pickle.load(f)
+    
+    _check_index_version(index_data)
         
     config = index_data["config"]
     documents = index_data["documents"]
     
     if not documents:
-        print("[-] Index contains no documents.")
+        if use_json:
+            print(json.dumps({"status": "success", "results": []}))
+        else:
+            print("[-] Index contains no documents.")
         return
+    
+    # Apply language filter if specified
+    lang_filter = getattr(args, 'language', None)
+    if lang_filter:
+        documents = [doc for doc in documents if doc.get("language", "unknown") == lang_filter.lower()]
+        if not documents:
+            if use_json:
+                print(json.dumps({"status": "success", "results": [], "message": f"No chunks found for language '{lang_filter}'."}))
+            else:
+                print(f"[-] No chunks found for language '{lang_filter}'.")
+            return
         
     # Local mode query embedding
     embs = get_local_embeddings([args.query])
@@ -510,31 +572,43 @@ def run_search(args):
     results.sort(key=lambda x: x[1], reverse=True)
     top_results = results[:args.top_k]
     
-    print(f"\n[+] Top {len(top_results)} matches for: '{args.query}'")
-    print("=" * 80)
-    for idx, (doc, score) in enumerate(top_results):
-        meta_str = f"\nRank #{idx + 1} | Similarity: {score:.4f} | {doc['file_path']} (Lines {doc['start_line']}-{doc['end_line']})"
-        print(meta_str.encode(sys.stdout.encoding or 'utf-8', errors='replace').decode(sys.stdout.encoding or 'utf-8'))
-        print("-" * 80)
-        # Highlight code formatting with indentation
-        indented_text = "\n".join("  " + l for l in doc["text"].split("\n")[:15])
-        print(indented_text.encode(sys.stdout.encoding or 'utf-8', errors='replace').decode(sys.stdout.encoding or 'utf-8'))
-        if len(doc["text"].split("\n")) > 15:
-            print("  ...")
+    if use_json:
+        json_results = []
+        for doc, score in top_results:
+            json_results.append({
+                "file_path": doc["file_path"],
+                "start_line": doc["start_line"],
+                "end_line": doc["end_line"],
+                "score": round(score, 4),
+                "language": doc.get("language", "unknown"),
+                "scope": doc.get("scope", ""),
+                "text": doc["text"]
+            })
+        print(json.dumps({"status": "success", "results": json_results}))
+    else:
+        print(f"\n[+] Top {len(top_results)} matches for: '{args.query}'")
         print("=" * 80)
+        for idx, (doc, score) in enumerate(top_results):
+            meta_str = f"\nRank #{idx + 1} | Similarity: {score:.4f} | {doc['file_path']} (Lines {doc['start_line']}-{doc['end_line']})"
+            print(meta_str.encode(sys.stdout.encoding or 'utf-8', errors='replace').decode(sys.stdout.encoding or 'utf-8'))
+            print("-" * 80)
+            # Highlight code formatting with indentation
+            indented_text = "\n".join("  " + l for l in doc["text"].split("\n")[:15])
+            print(indented_text.encode(sys.stdout.encoding or 'utf-8', errors='replace').decode(sys.stdout.encoding or 'utf-8'))
+            if len(doc["text"].split("\n")) > 15:
+                print("  ...")
+            print("=" * 80)
 
-def show_stats_data(index_data: Dict[str, Any], filepath: str):
+def _get_stats_dict(index_data: Dict[str, Any], filepath: str) -> Dict[str, Any]:
+    """Computes stats and returns as a dictionary."""
     config = index_data["config"]
     documents = index_data["documents"]
     n_docs = len(documents)
     dim = config["dim"]
     
     disk_bytes = os.path.getsize(filepath)
-    
-    # Calculate original float32 storage cost
     original_bytes = n_docs * dim * 4
     
-    # Calculate theoretical TurboQuantex compressed size
     bits_per_vector = 32 + 32 + (dim * config["bits"])
     if config["use_qjl"]:
         bits_per_vector += config["qjl_dim"]
@@ -544,23 +618,48 @@ def show_stats_data(index_data: Dict[str, Any], filepath: str):
     ratio = float(original_bytes) / float(theoretical_compressed_bytes) if theoretical_compressed_bytes > 0 else 0.0
     savings = (1.0 - float(theoretical_compressed_bytes) / float(original_bytes)) * 100.0 if original_bytes > 0 else 0.0
     
+    return {
+        "file_path": filepath,
+        "version": index_data.get("version", 1),
+        "model_id": index_data.get("model_id", "unknown"),
+        "total_chunks": n_docs,
+        "dimensions": dim,
+        "bits": config["bits"],
+        "use_qjl": config["use_qjl"],
+        "qjl_dim": config.get("qjl_dim", 0),
+        "original_bytes": original_bytes,
+        "compressed_bytes": theoretical_compressed_bytes,
+        "disk_bytes": disk_bytes,
+        "compression_ratio": round(ratio, 2),
+        "savings_percent": round(savings, 2)
+    }
+
+def show_stats_data(index_data: Dict[str, Any], filepath: str, output_format: str = "text"):
+    stats = _get_stats_dict(index_data, filepath)
+    
+    if output_format == "json":
+        print(json.dumps(stats))
+        return
+    
+    config = index_data["config"]
     print("\n" + "=" * 50)
     print("           TURBOQUANTEX INDEX METRICS           ")
     print("=" * 50)
-    print(f"File Path:                {filepath}")
-    print(f"Total Code Chunks:        {n_docs}")
-    print(f"Vector Dimensions:        {dim}")
+    print(f"File Path:                {stats['file_path']}")
+    print(f"Index Version:            {stats['version']}")
+    print(f"Total Code Chunks:        {stats['total_chunks']}")
+    print(f"Vector Dimensions:        {stats['dimensions']}")
     print(f"Embedding Mode:           local")
-    print(f"Quantization Bits:        {config['bits']} bits")
-    print(f"QJL Correction:           {'Active' if config['use_qjl'] else 'Inactive'}")
-    if config['use_qjl']:
-        print(f"QJL Sketch Size:          {config['qjl_dim']} bits")
+    print(f"Quantization Bits:        {stats['bits']} bits")
+    print(f"QJL Correction:           {'Active' if stats['use_qjl'] else 'Inactive'}")
+    if stats['use_qjl']:
+        print(f"QJL Sketch Size:          {stats['qjl_dim']} bits")
     print("-" * 50)
-    print(f"Original Float32 RAM:     {original_bytes:,} Bytes ({original_bytes / 1024:.2f} KB)")
-    print(f"TurboQuantex Packed RAM:  {theoretical_compressed_bytes:,} Bytes ({theoretical_compressed_bytes / 1024:.2f} KB)")
-    print(f"Compressed Disk Size:     {disk_bytes:,} Bytes ({disk_bytes / 1024:.2f} KB)")
-    print(f"Theoretical RAM Ratio:    {ratio:.2f}x compression")
-    print(f"Theoretical RAM Savings:  {savings:.2f}% memory reduction")
+    print(f"Original Float32 RAM:     {stats['original_bytes']:,} Bytes ({stats['original_bytes'] / 1024:.2f} KB)")
+    print(f"TurboQuantex Packed RAM:  {stats['compressed_bytes']:,} Bytes ({stats['compressed_bytes'] / 1024:.2f} KB)")
+    print(f"Compressed Disk Size:     {stats['disk_bytes']:,} Bytes ({stats['disk_bytes'] / 1024:.2f} KB)")
+    print(f"Theoretical RAM Ratio:    {stats['compression_ratio']:.2f}x compression")
+    print(f"Theoretical RAM Savings:  {stats['savings_percent']:.2f}% memory reduction")
     print("=" * 50)
 
 def run_stats(args):
@@ -570,8 +669,104 @@ def run_stats(args):
         
     with open(args.index, "rb") as f:
         index_data = pickle.load(f)
+    
+    output_format = getattr(args, 'format', 'text')
+    show_stats_data(index_data, args.index, output_format)
+
+def run_search_batch(args):
+    """Runs multiple queries against the index with a single index load."""
+    use_json = getattr(args, 'format', 'text') == 'json'
+    
+    if not os.path.exists(args.index):
+        if use_json:
+            print(json.dumps({"status": "error", "message": f"Index file '{args.index}' does not exist."}))
+        else:
+            print(f"Error: Index file '{args.index}' does not exist.")
+        sys.exit(1)
+    
+    # Load index once
+    with open(args.index, "rb") as f:
+        index_data = pickle.load(f)
+    
+    _check_index_version(index_data)
+    
+    config = index_data["config"]
+    documents = index_data["documents"]
+    
+    # Parse queries: comma-separated string or file path
+    if os.path.isfile(args.queries):
+        with open(args.queries, 'r', encoding='utf-8') as f:
+            queries = [line.strip() for line in f if line.strip()]
+    else:
+        queries = [q.strip() for q in args.queries.split(",") if q.strip()]
+    
+    if not queries:
+        if use_json:
+            print(json.dumps({"status": "error", "message": "No queries provided."}))
+        else:
+            print("[-] No queries provided.")
+        return
+    
+    # Initialize engine once
+    engine = TurboQuantex(
+        dim=config["dim"],
+        bits=config["bits"],
+        use_qjl=config["use_qjl"],
+        qjl_dim=config["qjl_dim"],
+        seed=config["seed"]
+    )
+    
+    # Batch embed all queries
+    query_embs = get_local_embeddings(queries)
+    
+    # Pre-unpack all document QJL bits
+    doc_qres = []
+    for doc in documents:
+        q_res = None
+        if doc["q_res_packed"] is not None:
+            q_res = np.unpackbits(doc["q_res_packed"])[:config["qjl_dim"]].astype(bool)
+        doc_qres.append(q_res)
+    
+    all_results = {}
+    for qi, query in enumerate(queries):
+        query_emb = query_embs[qi]
+        query_norm = np.linalg.norm(query_emb)
+        query_norm_u = query_emb / (query_norm + 1e-8) if query_norm > 1e-8 else query_emb
         
-    show_stats_data(index_data, args.index)
+        results = []
+        for di, doc in enumerate(documents):
+            sim = engine.estimate_inner_product(
+                doc["norm_x"],
+                doc["indices"].astype(np.int32),
+                doc_qres[di],
+                doc["norm_res"],
+                query_norm_u
+            )
+            sim = float(np.clip(sim, -1.0, 1.0))
+            results.append((doc, sim))
+        
+        results.sort(key=lambda x: x[1], reverse=True)
+        top = results[:args.top_k]
+        
+        all_results[query] = [{
+            "file_path": doc["file_path"],
+            "start_line": doc["start_line"],
+            "end_line": doc["end_line"],
+            "score": round(score, 4),
+            "language": doc.get("language", "unknown"),
+            "scope": doc.get("scope", ""),
+            "text": doc["text"]
+        } for doc, score in top]
+    
+    if use_json:
+        print(json.dumps({"status": "success", "batch_results": all_results}))
+    else:
+        for query, results in all_results.items():
+            print(f"\n[+] Results for: '{query}'")
+            print("=" * 80)
+            for idx, r in enumerate(results):
+                print(f"  Rank #{idx+1} | {r['score']:.4f} | {r['file_path']} (Lines {r['start_line']}-{r['end_line']})")
+            print("=" * 80)
 
 def run_install_hook(args):
     # Walk up to find .git directory
@@ -639,16 +834,27 @@ def main():
     parser_update = subparsers.add_parser("update", help="Incrementally update an existing codebase index")
     parser_update.add_argument("--dir", required=True, help="Path to directory containing source code files")
     parser_update.add_argument("--index", default="codebase_index.tq", help="Index file path to update (.tq)")
+    parser_update.add_argument("--format", choices=["text", "json"], default="text", help="Output format (text or json)")
  
     # Subparser for search
     parser_search = subparsers.add_parser("search", help="Perform semantic search on indexed codebase")
     parser_search.add_argument("--index", default="codebase_index.tq", help="Path to the index file (.tq)")
     parser_search.add_argument("--query", required=True, help="Query text for semantic search")
     parser_search.add_argument("--top-k", type=int, default=5, help="Number of matching snippets to return")
+    parser_search.add_argument("--format", choices=["text", "json"], default="text", help="Output format (text or json)")
+    parser_search.add_argument("--language", help="Filter results by language (e.g. python, php, javascript)")
+    
+    # Subparser for search-batch
+    parser_batch = subparsers.add_parser("search-batch", help="Run multiple queries in one index load")
+    parser_batch.add_argument("--index", required=True, help="Path to the index file (.tq)")
+    parser_batch.add_argument("--queries", required=True, help="Comma-separated queries or path to .txt file with one query per line")
+    parser_batch.add_argument("--top-k", type=int, default=3, help="Number of matching snippets per query")
+    parser_batch.add_argument("--format", choices=["text", "json"], default="json", help="Output format (text or json)")
     
     # Subparser for stats
     parser_stats = subparsers.add_parser("stats", help="Show index details and compression metrics")
     parser_stats.add_argument("--index", default="codebase_index.tq", help="Path to the index file (.tq)")
+    parser_stats.add_argument("--format", choices=["text", "json"], default="text", help="Output format (text or json)")
     
     # Subparser for install-hook
     parser_hook = subparsers.add_parser("install-hook", help="Install git post-commit hook for auto index updating")
@@ -662,6 +868,8 @@ def main():
         run_update(args)
     elif args.command == "search":
         run_search(args)
+    elif args.command == "search-batch":
+        run_search_batch(args)
     elif args.command == "stats":
         run_stats(args)
     elif args.command == "install-hook":

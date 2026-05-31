@@ -57,13 +57,12 @@ def run_stress_test(num_vectors=10000, dim=384, bits=3, use_qjl=True, qjl_dim=12
     # 6. Memory Footprint Savings
     original_bytes = num_vectors * dim * 4
     
-    # Pack size calculation per vector:
-    # - float32 norm_x (4 bytes)
-    # - packed indices: dim * bits / 8 = 384 * 3 / 8 = 144 bytes
-    # - packed q_res: qjl_dim / 8 = 128 / 8 = 16 bytes
-    # - float32 norm_res (4 bytes)
-    # Total: 4 + 144 + 16 + 4 = 168 bytes
-    turbo_bytes = num_vectors * 168
+    # Dynamic pack size calculation per vector
+    bits_per_vector = 32 + 32 + (dim * bits)
+    if use_qjl:
+        bits_per_vector += qjl_dim
+    bytes_per_vector = int(np.ceil(bits_per_vector / 8))
+    turbo_bytes = num_vectors * bytes_per_vector
     ratio = original_bytes / turbo_bytes
     savings = (1 - (turbo_bytes / original_bytes)) * 100
     
