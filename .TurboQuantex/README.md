@@ -39,8 +39,8 @@ We provide automated setup scripts to prepare the environment, configure the vir
 
 ### Windows (PowerShell/CMD)
 Run:
-```cmd
-.TurboQuantex\setup.bat
+```powershell
+.\.TurboQuantex\setup.bat
 ```
 
 ### macOS & Linux
