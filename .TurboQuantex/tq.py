@@ -57,7 +57,8 @@ class ONNXEmbedder:
         for filename, url in files.items():
             path = os.path.join(self.model_dir, filename)
             if not os.path.exists(path):
-                print(f"[*] Downloading local model {filename} (~90MB)...")
+                size_str = "~90MB" if filename == "model.onnx" else "~460KB"
+                print(f"[*] Downloading local model {filename} ({size_str})...")
                 try:
                     import ssl
                     context = ssl._create_unverified_context()
