@@ -1,0 +1,43 @@
+# TurboQuantex Integration & Vector Coding Rules
+
+Whenever assisting the developer in this repository, you MUST follow these instructions automatically to interact with the codebase context.
+
+---
+
+## 1. Local Codebase Semantic Search (Mandatory)
+
+> [!IMPORTANT]
+> **NEVER GUESS PATHS OR FUNCTION SIGNATURES.**
+> Before answering questions about the workspace or writing code modifications, you must first execute the local semantic search tool to pull relevant code snippets.
+
+### Search Command
+Run the search CLI command using:
+```bash
+python turbo_code.py search --index codebase_index.tq --query "<search query matching requirements>" --top-k 3
+```
+
+### Context Integration
+- Read the lines, files, and classes returned by the search command.
+- Make sure to keep the code modifications aligned with the patterns found in the retrieved code blocks.
+
+---
+
+## 2. Incremental Index Updating
+
+> [!TIP]
+> **KEEP THE VECTOR INDEX SYNCED.**
+> When you modify files in the codebase, you must update the TurboQuantex vector index to ensure the changes are reflected in future queries.
+
+### Update Command
+After any code changes are made, run:
+```bash
+python turbo_code.py update --dir . --index codebase_index.tq
+```
+
+---
+
+## 3. Strict Offline Mode Compliance
+
+- **No API Keys Needed**: All vector embeddings are processed 100% locally and offline via the SentenceTransformer (`all-MiniLM-L6-v2`) model or the local Flask daemon.
+- **Do not introduce external API dependencies** unless the user explicitly requests it.
+- **Daemon Acceleration**: If the local Flask daemon is running (port 5000), search queries and indexing operations will complete in milliseconds. Keep the Flask daemon running in the background for optimal performance.
