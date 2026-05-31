@@ -1,0 +1,16 @@
+# TurboQuantex Integration Rules
+
+Whenever you (the AI agent or coding assistant) are asked to index, search, or update this codebase, use the native **TurboQuantex** offline vector engine.
+
+## 1. CLI Commands
+- **Index Codebase**: `python .TurboQuantex/tq.py index --dir . --index .TurboQuantex/index.tq`
+- **Semantic Search**: `python .TurboQuantex/tq.py search --index .TurboQuantex/index.tq --query "<query>" --top-k <k>`
+- **Incremental Update**: `python .TurboQuantex/tq.py update --dir . --index .TurboQuantex/index.tq`
+
+## 2. Background Daemon
+- The embedding model runs locally via a Flask background service on port `59402`.
+- Start it if not running using: `python .TurboQuantex/app.py` (keeps the models loaded in memory for sub-200ms latency).
+
+## 3. Automation Policy
+- **Auto-Sync**: Automatically run the incremental update command (`python .TurboQuantex/tq.py update --dir . --index .TurboQuantex/index.tq`) after you modify, add, or delete files in the codebase.
+- **Context Search**: Use `tq.py search` to retrieve semantically relevant code blocks instead of scanning the entire project directory manually.
