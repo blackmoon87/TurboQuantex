@@ -26,22 +26,25 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-# Create Virtual Environment
-if [ ! -d "venv" ]; then
+# Determine the directory of the script
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+# Create Virtual Environment inside script directory
+if [ ! -d "$SCRIPT_DIR/venv" ]; then
     echo "[*] Creating virtual environment (venv)..."
-    python3 -m venv venv
+    python3 -m venv "$SCRIPT_DIR/venv"
 else
     echo "[+] Virtual environment (venv) already exists."
 fi
 
 # Activate Virtual Environment & Install Dependencies
 echo "[*] Activating virtual environment and upgrading pip..."
-source venv/bin/activate
+source "$SCRIPT_DIR/venv/bin/activate"
 python3 -m pip install --upgrade pip
 
-if [ -f "requirements.txt" ]; then
+if [ -f "$SCRIPT_DIR/requirements.txt" ]; then
     echo "[*] Installing dependencies from requirements.txt..."
-    pip install -r requirements.txt
+    pip install -r "$SCRIPT_DIR/requirements.txt"
 else
     echo "[!] Warning: requirements.txt not found. Installing core packages manually..."
     pip install sentence-transformers flask numpy torch
@@ -53,8 +56,8 @@ echo "             SETUP COMPLETED SUCCESSFULLY!"
 echo "===================================================="
 echo
 echo "To start the background embedding daemon:"
-echo "   python3 app.py"
+echo "   python3 .TurboQuantex/app.py"
 echo
 echo "To run vector codebase searches:"
-echo "   python3 turbo_code.py search --query \"search term\""
+echo "   python3 .TurboQuantex/turbo_code.py search --query \"search term\""
 echo

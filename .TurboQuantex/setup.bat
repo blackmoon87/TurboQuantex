@@ -32,21 +32,21 @@ if %errorlevel% neq 0 (
 )
 
 :: Create Virtual Environment
-if not exist venv (
+if not exist "%~dp0venv" (
     echo [*] Creating virtual environment (venv)...
-    python -m venv venv
+    python -m venv "%~dp0venv"
 ) else (
     echo [+] Virtual environment (venv) already exists.
 )
 
 :: Activate Virtual Environment & Install Dependencies
 echo [*] Activating virtual environment and upgrading pip...
-call venv\Scripts\activate.bat
+call "%~dp0venv\Scripts\activate.bat"
 python -m pip install --upgrade pip
 
-if exist requirements.txt (
+if exist "%~dp0requirements.txt" (
     echo [*] Installing dependencies from requirements.txt...
-    pip install -r requirements.txt
+    pip install -r "%~dp0requirements.txt"
 ) else (
     echo [!] Warning: requirements.txt not found. Installing core packages manually...
     pip install sentence-transformers flask numpy torch
@@ -58,9 +58,9 @@ echo             SETUP COMPLETED SUCCESSFULLY!
 echo ====================================================
 echo.
 echo To start the background embedding daemon:
-echo    python app.py
+echo    python .TurboQuantex\app.py
 echo.
 echo To run vector codebase searches:
-echo    python turbo_code.py search --query "search term"
+echo    python .TurboQuantex\turbo_code.py search --query "search term"
 echo.
 pause

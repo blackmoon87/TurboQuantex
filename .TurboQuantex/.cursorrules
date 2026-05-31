@@ -13,7 +13,7 @@ Whenever assisting the developer in this repository, you MUST follow these instr
 ### Search Command
 Run the search CLI command using:
 ```bash
-python turbo_code.py search --index codebase_index.tq --query "<search query matching requirements>" --top-k 3
+python .TurboQuantex/turbo_code.py search --index .TurboQuantex/codebase_index.tq --query "<search query matching requirements>" --top-k 3
 ```
 
 ### Context Integration
@@ -31,7 +31,7 @@ python turbo_code.py search --index codebase_index.tq --query "<search query mat
 ### Update Command
 After any code changes are made, run:
 ```bash
-python turbo_code.py update --dir . --index codebase_index.tq
+python .TurboQuantex/turbo_code.py update --dir . --index .TurboQuantex/codebase_index.tq
 ```
 
 ---

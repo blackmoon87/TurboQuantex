@@ -11,7 +11,8 @@ from turboquantex import TurboQuantex
 # Exclude directories by default
 DEFAULT_EXCLUDES = {
     '.git', 'node_modules', 'vendor', 'storage', 'bootstrap', 
-    'dist', 'build', '__pycache__', '.idea', '.vscode', '.venv'
+    'dist', 'build', '__pycache__', '.idea', '.vscode', '.venv',
+    '.TurboQuantex'
 }
 
 # Exclude binary or non-code file extensions
