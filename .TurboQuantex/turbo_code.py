@@ -27,9 +27,9 @@ import json
 _local_model_cache = None
 
 def get_local_embeddings(texts: List[str]) -> List[np.ndarray]:
-    """Queries daemon server at http://127.0.0.1:5000 if running, or falls back to SentenceTransformer locally."""
+    """Queries daemon server at http://127.0.0.1:59402 if running, or falls back to SentenceTransformer locally."""
     try:
-        url = "http://127.0.0.1:5000/api/embed"
+        url = "http://127.0.0.1:59402/api/embed"
         req = urllib.request.Request(
             url, 
             data=json.dumps({"texts": texts}).encode('utf-8'),
