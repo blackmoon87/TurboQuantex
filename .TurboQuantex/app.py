@@ -3,10 +3,10 @@ import time
 import threading
 import logging
 import numpy as np
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify
 from turboquantex import TurboQuantex
 
-app = Flask(__name__, template_folder="templates")
+app = Flask(__name__)
 app_start_time = time.time()
 
 # In-memory database of documents
@@ -252,13 +252,7 @@ def calculate_memory_stats():
         "savings_pct": round(savings_pct, 2)
     }
 
-@app.route("/")
-def landing():
-    return render_template("landing.html")
 
-@app.route("/dashboard")
-def index():
-    return render_template("index.html")
 
 @app.route("/api/config", methods=["GET", "POST"])
 def manage_config():
@@ -660,8 +654,6 @@ def health_check():
     })
 
 if __name__ == "__main__":
-    os.makedirs("templates", exist_ok=True)
-    
     # Configure logging
     logging.basicConfig(
         level=logging.INFO,

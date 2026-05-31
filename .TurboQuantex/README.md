@@ -15,16 +15,13 @@ All resources are completely isolated inside the `.TurboQuantex/` folder, ensuri
 ```
 [Your Project Root]
 └── .TurboQuantex/
-    ├── app.py                  # Flask Web Server (API & Dashboard Backend)
+    ├── app.py                  # Flask Daemon (API & File Watcher)
     ├── turboquantex.py         # Core Compression Math (PolarQuant & QJL)
     ├── tq.py                   # CLI Codebase Indexer, Search & Update Utility
     ├── turboquantex_skill.py   # Reusable AI Agent Programmatic Skill API
     ├── example_usage.py        # Demo script showing full indexing/updating lifecycle
     ├── setup.bat               # Windows Environment & Dependency Setup Script
     ├── setup.sh                # macOS/Linux Environment & Dependency Setup Script
-    ├── templates/
-    │   ├── index.html          # Glassmorphic Web Dashboard
-    │   └── landing.html        # Interactive Product Landing Page
     └── example_project/        # Sample codebase directory for demonstration
         ├── app/Http/Controllers/UserController.php
         ├── scripts/data_processor.py
@@ -66,13 +63,12 @@ chmod +x .TurboQuantex/setup.sh
 
 ---
 
-## 1. Web Dashboard & Daemon Acceleration
+## 1. Daemon Acceleration & File Watcher
 
-Start the Flask server to open the interactive control panel and cache the embedding model in memory:
+Start the Flask daemon to enable background embedding caching and automatic file watching:
 ```bash
 python .TurboQuantex/app.py
 ```
-- Open `http://127.0.0.1:59402` in your web browser.
 - **Daemon Acceleration**: When this server is running on the custom private port `59402`, the CLI and Skill queries route requests through the local daemon, speeding up vector searches from **~3.1 seconds** down to **< 200 milliseconds**!
 
 ---

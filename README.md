@@ -15,7 +15,7 @@ All resources are completely isolated inside the `.TurboQuantex/` folder, ensuri
 ```
 [Your Project Root]
 └── .TurboQuantex/
-    ├── app.py                  # Flask Daemon (API, Dashboard & File Watcher)
+    ├── app.py                  # Flask Daemon (API & File Watcher)
     ├── turboquantex.py         # Core Compression Math (PolarQuant & QJL)
     ├── tq.py                   # CLI: Index, Search, Update, Stats & Batch Search
     ├── turboquantex_skill.py   # Reusable AI Agent Programmatic Skill API
@@ -23,9 +23,6 @@ All resources are completely isolated inside the `.TurboQuantex/` folder, ensuri
     ├── setup.bat               # Windows Environment & Dependency Setup Script
     ├── setup.sh                # macOS/Linux Environment & Dependency Setup Script
     ├── index.tq                # Compressed codebase vector index (auto-generated)
-    ├── templates/
-    │   ├── index.html          # Glassmorphic Web Dashboard
-    │   └── landing.html        # Interactive Product Landing Page
     └── example_project/        # Sample codebase directory for demonstration
         ├── app/Http/Controllers/UserController.php
         ├── scripts/data_processor.py
@@ -81,7 +78,7 @@ python .TurboQuantex/app.py
 |------------|-------------|
 | **Embedding Cache** | The ONNX model stays loaded in RAM — searches drop from ~3s (cold) to <9ms (warm) |
 | **File Watcher** | A background thread polls the project directory every 10 seconds. When files change, it waits 5 seconds (debounce) then auto-updates the vector index — **no manual commands needed** |
-| **API Server** | REST API on `http://127.0.0.1:59402` for the dashboard, health checks, and programmatic queries |
+| **API Server** | REST API on `http://127.0.0.1:59402` for health checks and programmatic queries |
 
 ### Health Check
 
@@ -409,8 +406,6 @@ When the daemon is running on `http://127.0.0.1:59402`:
 | `GET` | `/api/config` | Current engine configuration |
 | `POST` | `/api/embed` | Generate embedding for text |
 | `POST` | `/api/reset` | Clear in-memory document store |
-| `GET` | `/` | Web dashboard |
-| `GET` | `/dashboard` | Web dashboard (alias) |
 
 ### Example: Query a local index via API
 

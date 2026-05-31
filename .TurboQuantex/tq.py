@@ -84,50 +84,59 @@ class ONNXEmbedder:
                     raise e
                     
     def encode(self, texts: List[str]) -> List[np.ndarray]:
-        # Encode batch
-        encoded = [self.tokenizer.encode(t) for t in texts]
-        
-        # Determine max length in the batch for dynamic padding matching onnx input
-        max_len = max(len(e.ids) for e in encoded)
-        
-        input_ids = []
-        attention_mask = []
-        token_type_ids = []
-        
-        for e in encoded:
-            ids = e.ids + [0] * (max_len - len(e.ids))
-            mask = e.attention_mask + [0] * (max_len - len(e.attention_mask))
-            type_ids = e.type_ids + [0] * (max_len - len(e.type_ids))
+        if not texts:
+            return []
             
-            input_ids.append(ids)
-            attention_mask.append(mask)
-            token_type_ids.append(type_ids)
+        batch_size = 32
+        all_embeddings = []
+        
+        for i in range(0, len(texts), batch_size):
+            batch_texts = texts[i:i + batch_size]
+            encoded = [self.tokenizer.encode(t) for t in batch_texts]
             
-        input_ids = np.array(input_ids, dtype=np.int64)
-        attention_mask = np.array(attention_mask, dtype=np.int64)
-        token_type_ids = np.array(token_type_ids, dtype=np.int64)
-        
-        ort_inputs = {
-            "input_ids": input_ids,
-            "attention_mask": attention_mask,
-            "token_type_ids": token_type_ids
-        }
-        
-        ort_outputs = self.session.run(None, ort_inputs)
-        token_embeddings = ort_outputs[0]
-        
-        # Mean Pooling
-        input_mask_expanded = np.expand_dims(attention_mask, axis=-1).astype(np.float32)
-        sum_embeddings = np.sum(token_embeddings * input_mask_expanded, axis=1)
-        sum_mask = np.clip(np.sum(input_mask_expanded, axis=1), 1e-9, None)
-        
-        embeddings = sum_embeddings / sum_mask
-        
-        # Normalization
-        norms = np.linalg.norm(embeddings, axis=1, keepdims=True)
-        normalized_embeddings = embeddings / (norms + 1e-9)
-        
-        return [np.array(e, dtype=np.float32) for e in normalized_embeddings]
+            # Determine max length in the batch for dynamic padding matching onnx input
+            max_len = max(len(e.ids) for e in encoded)
+            
+            input_ids = []
+            attention_mask = []
+            token_type_ids = []
+            
+            for e in encoded:
+                ids = e.ids + [0] * (max_len - len(e.ids))
+                mask = e.attention_mask + [0] * (max_len - len(e.attention_mask))
+                type_ids = e.type_ids + [0] * (max_len - len(e.type_ids))
+                
+                input_ids.append(ids)
+                attention_mask.append(mask)
+                token_type_ids.append(type_ids)
+                
+            input_ids_np = np.array(input_ids, dtype=np.int64)
+            attention_mask_np = np.array(attention_mask, dtype=np.int64)
+            token_type_ids_np = np.array(token_type_ids, dtype=np.int64)
+            
+            ort_inputs = {
+                "input_ids": input_ids_np,
+                "attention_mask": attention_mask_np,
+                "token_type_ids": token_type_ids_np
+            }
+            
+            ort_outputs = self.session.run(None, ort_inputs)
+            token_embeddings = ort_outputs[0]
+            
+            # Mean Pooling
+            input_mask_expanded = np.expand_dims(attention_mask_np, axis=-1).astype(np.float32)
+            sum_embeddings = np.sum(token_embeddings * input_mask_expanded, axis=1)
+            sum_mask = np.clip(np.sum(input_mask_expanded, axis=1), 1e-9, None)
+            
+            embeddings = sum_embeddings / sum_mask
+            
+            # Normalization
+            norms = np.linalg.norm(embeddings, axis=1, keepdims=True)
+            normalized_embeddings = embeddings / (norms + 1e-9)
+            
+            all_embeddings.extend([np.array(e, dtype=np.float32) for e in normalized_embeddings])
+            
+        return all_embeddings
 
 def is_daemon_running() -> bool:
     try:
@@ -196,7 +205,8 @@ def get_local_embeddings(texts: List[str]) -> List[np.ndarray]:
             headers={"Content-Type": "application/json"},
             method="POST"
         )
-        with urllib.request.urlopen(req, timeout=2.0) as response:
+        timeout_val = max(5.0, len(texts) * 0.1)
+        with urllib.request.urlopen(req, timeout=timeout_val) as response:
             if response.status == 200:
                 res_data = json.loads(response.read().decode('utf-8'))
                 if res_data.get("status") == "success":
