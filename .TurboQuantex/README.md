@@ -37,10 +37,14 @@ All resources are completely isolated inside the `.TurboQuantex/` folder, ensuri
 
 ### Method A: Zero-Prompt AI Agent Autopilot (Preferred & Recommended)
 
-If you are working with an AI coding assistant (such as Cursor, VS Code AI, or Antigravity), you do not need to run manual terminal commands. Simply type this prompt to your AI assistant:
+If you are working with an AI coding assistant (such as Cursor, VS Code AI, or Antigravity), you do not need to clone the repository or run manual terminal commands yourself. Simply type this prompt to your AI assistant:
 > "Start using TurboQuantex to index and search this codebase."
 
-The AI agent will automatically detect `.cursorrules` and `important_instruction_4coder_agent.md`, configure the local environment, index the codebase, and activate the background daemon without requiring your manual input.
+The AI agent will automatically:
+1. Clone the library from GitHub (`https://github.com/blackmoon87/TurboQuantex.git`) and copy the `.TurboQuantex` core folder to your project root.
+2. Configure the virtual environment and install dependencies (`setup.bat` or `setup.sh`).
+3. Build the local vector index of your project files.
+4. Launch the background daemon silently and register the automatic Git commit hook.
 
 ### Method B: Manual Terminal Setup (Alternative)
 
