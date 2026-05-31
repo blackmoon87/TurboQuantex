@@ -47,7 +47,7 @@ if [ -f "$SCRIPT_DIR/requirements.txt" ]; then
     pip install -r "$SCRIPT_DIR/requirements.txt"
 else
     echo "[!] Warning: requirements.txt not found. Installing core packages manually..."
-    pip install sentence-transformers flask numpy torch
+    pip install onnxruntime tokenizers flask numpy
 fi
 
 echo

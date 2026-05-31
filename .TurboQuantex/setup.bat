@@ -49,7 +49,7 @@ if exist "%~dp0requirements.txt" (
     pip install -r "%~dp0requirements.txt"
 ) else (
     echo [!] Warning: requirements.txt not found. Installing core packages manually...
-    pip install sentence-transformers flask numpy torch
+    pip install onnxruntime tokenizers flask numpy
 )
 
 echo.
