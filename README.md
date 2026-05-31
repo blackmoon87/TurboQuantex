@@ -36,17 +36,17 @@ All resources are completely isolated inside the `.TurboQuantex/` folder, ensuri
 
 ## Installation & Setup
 
-### Method A: Zero-Prompt AI Agent Autopilot (Preferred & Recommended)
+### Method A: One-Command AI Deploy (Preferred & Recommended)
 
-If you are working with an AI coding assistant (such as Cursor, VS Code AI, or Antigravity) inside a project, you do not need to download or install this tool manually. Simply type this prompt to your AI assistant:
-> "Deploy and start using TurboQuantex from https://github.com/blackmoon87/TurboQuantex"
+If you are working with an AI coding assistant (such as Cursor, VS Code AI, or Antigravity) inside a project, simply type this single prompt:
+
+> **active & use skills : https://github.com/blackmoon87/TurboQuantex**
 
 The AI agent will autonomously:
-1. Clone the repository `https://github.com/blackmoon87/TurboQuantex.git` in the background.
-2. Deploy the isolated `.TurboQuantex` engine subfolder directly into your current project root.
-3. Configure the virtual environment (`.\.TurboQuantex\setup.bat` or `setup.sh`) and install requirements.
-4. Index your codebase, install the post-commit git hook, and spin up the silent background daemon.
-5. Provide you with instant semantic search and query capabilities.
+1. Clone the repository and deploy the `.TurboQuantex` folder into your project root.
+2. Install dependencies and configure the environment.
+3. Index your codebase and install the post-commit git hook.
+4. Start the background daemon with auto file watcher.
 
 ### Method B: Manual Terminal Setup (Alternative)
 
