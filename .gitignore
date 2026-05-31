@@ -1,0 +1,20 @@
+# Local vector index databases
+*.tq
+
+# Local ONNX model cache
+.TurboQuantex/model/
+
+# Virtual environments
+.TurboQuantex/venv/
+.venv/
+venv/
+
+# Python cache
+__pycache__/
+*.py[cod]
+
+# IDE and OS files
+.vscode/
+.idea/
+Thumbs.db
+Desktop.ini

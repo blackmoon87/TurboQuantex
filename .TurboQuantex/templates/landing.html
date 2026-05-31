@@ -650,7 +650,7 @@
         }
 
         .tab-btn {
-            background: rgba(255,255,255,0.03);
+            background: rgba(255, 255, 255, 0.03);
             border: 1px solid var(--glass-border);
             color: var(--text-secondary);
             padding: 0.6rem 1.5rem;
@@ -737,6 +737,63 @@
                 grid-template-columns: 1fr;
                 gap: 3rem;
             }
+        }
+
+        /* Local Codebase Search Styles */
+        .local-search-section {
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+        .local-search-section input:focus {
+            border-color: var(--accent-purple) !important;
+            box-shadow: 0 0 10px rgba(139, 92, 246, 0.2);
+        }
+        .search-result-item {
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            padding: 1.2rem;
+            transition: transform 0.2s, border-color 0.2s;
+            margin-bottom: 1rem;
+        }
+        .search-result-item:hover {
+            border-color: rgba(139, 92, 246, 0.3);
+            transform: translateY(-2px);
+        }
+        .search-result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.8rem;
+            font-size: 0.9rem;
+        }
+        .search-result-path {
+            color: #fff;
+            font-weight: 600;
+        }
+        .search-result-score {
+            color: var(--accent-cyan);
+            font-weight: 500;
+            background: rgba(6, 182, 212, 0.1);
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+        }
+        .search-result-code {
+            font-family: monospace;
+            font-size: 0.85rem;
+            color: #cbd5e1;
+            white-space: pre-wrap;
+            background: rgba(0, 0, 0, 0.4);
+            padding: 1rem;
+            border-radius: 6px;
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            text-align: left;
+            direction: ltr;
+        }
+        @keyframes pulse {
+            0% { transform: scale(0.95); opacity: 0.5; }
+            50% { transform: scale(1.1); opacity: 1; }
+            100% { transform: scale(0.95); opacity: 0.5; }
         }
     </style>
 </head>
@@ -944,6 +1001,31 @@ python tq.py update --dir example_project --index index.tq</div>
             </div>
         </section>
 
+        <!-- Live Local Codebase Search Section (Shows up only when the local daemon is active) -->
+        <section class="local-search-section" id="local-search" style="display: none; margin-top: 3rem; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 16px; padding: 2.5rem; backdrop-filter: blur(10px);">
+            <div class="section-title" style="text-align: left; margin-bottom: 2rem; margin-top: 0;">
+                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 0.5rem;">
+                    <span class="active-badge" style="background: #10B981; color: #fff; font-size: 0.75rem; font-weight: 600; padding: 4px 10px; border-radius: 12px; display: inline-flex; align-items: center; gap: 5px; direction: ltr;">
+                        <span style="width: 6px; height: 6px; background: #fff; border-radius: 50%; display: inline-block; animation: pulse 1.5s infinite;"></span>
+                        <span data-i18n="local_search_status">Local Daemon Connected</span>
+                    </span>
+                </div>
+                <h2 style="font-family: var(--font-outfit); font-size: 2rem; margin-bottom: 0.5rem;" data-i18n="local_search_title">Search Local Codebase</h2>
+                <p style="color: var(--text-secondary); font-size: 0.95rem; font-weight: 300;" data-i18n="local_search_desc">
+                    Query the active project vectors locally using the SentenceTransformer memory cache on port 59402.
+                </p>
+            </div>
+
+            <div style="display: flex; gap: 15px; margin-bottom: 1.5rem;">
+                <input type="text" id="local-search-input" style="flex: 1; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 12px 16px; color: #fff; font-family: inherit; font-size: 1rem; outline: none; transition: border 0.3s;" data-i18n-placeholder="local_search_placeholder" placeholder="Type to search your codebase semantically (e.g. database setup)...">
+                <button onclick="performLocalSearch()" style="background: var(--accent-purple); border: none; border-radius: 8px; padding: 12px 24px; color: #fff; font-weight: 600; cursor: pointer; transition: transform 0.2s, opacity 0.2s; display: flex; align-items: center; gap: 8px;" class="btn-search">
+                    <i class="fa-solid fa-magnifying-glass"></i> <span data-i18n="local_search_btn">Search</span>
+                </button>
+            </div>
+
+            <div id="local-search-results" style="display: none; flex-direction: column; gap: 15px;"></div>
+        </section>
+
     </div>
 
     <footer>
@@ -1022,7 +1104,12 @@ python tq.py update --dir example_project --index index.tq</div>
                 sim_log_7: "Building 1-bit QJL Residual Correction sketch...",
                 sim_log_8: "Final Packed Representation:",
                 sim_log_9: "Bytes (Compressed from 1,536 Bytes)",
-                sim_log_10: "Complete Vector Quantization completed! Ready for semantic index matches."
+                sim_log_10: "Complete Vector Quantization completed! Ready for semantic index matches.",
+                local_search_status: "Local Daemon Connected",
+                local_search_title: "Search Local Codebase",
+                local_search_desc: "Query the active project vectors locally using the SentenceTransformer memory cache on port 59402.",
+                local_search_placeholder: "Type to search your codebase semantically (e.g. database setup)...",
+                local_search_btn: "Search"
             },
             ar: {
                 title: "TurboQuantex - محرك تكميم المتجهات المحلي دون اتصال",
@@ -1091,7 +1178,12 @@ python tq.py update --dir example_project --index index.tq</div>
                 sim_log_7: "جاري بناء رمز تصحيح QJL المتبقي بـ 1-بت...",
                 sim_log_8: "التمثيل النهائي المضغوط:",
                 sim_log_9: "بايت (مضغوطة من 1,536 بايت)",
-                sim_log_10: "اكتمل التكميم الكامل للمتجهات! جاهز لمطابقة الفهرس الدلالي."
+                sim_log_10: "اكتمل التكميم الكامل للمتجهات! جاهز لمطابقة الفهرس الدلالي.",
+                local_search_status: "متصل بالخادم المحلي",
+                local_search_title: "البحث في الكود المحلي",
+                local_search_desc: "استعلم دلالياً عن ملفات مشروعك المحلي باستخدام ذاكرة خادم SentenceTransformer النشط على المنفذ 59402.",
+                local_search_placeholder: "اكتب للبحث دلالياً في الكود الخاص بك (مثال: إعداد قاعدة البيانات)...",
+                local_search_btn: "بحث"
             },
             zh: {
                 title: "TurboQuantex - 离线向量量化引擎",
@@ -1160,7 +1252,12 @@ python tq.py update --dir example_project --index index.tq</div>
                 sim_log_7: "构建 1-bit QJL 残差纠错草图...",
                 sim_log_8: "最终打包表示：",
                 sim_log_9: "字节（自 1,536 字节压缩）",
-                sim_log_10: "向量量化完全就绪！可以进行语义索引匹配。"
+                sim_log_10: "向量量化完全就绪！可以进行语义索引匹配。",
+                local_search_status: "本地后台服务已连接",
+                local_search_title: "搜索本地代码库",
+                local_search_desc: "通过端口 59402 上的 SentenceTransformer 内存缓存，在本地对活动项目向量进行语义查询。",
+                local_search_placeholder: "输入以对您的代码库进行语义搜索（例如：数据库配置）...",
+                local_search_btn: "搜索"
             },
             ru: {
                 title: "TurboQuantex - Локальный Движок Квантования Векторов",
@@ -1229,7 +1326,12 @@ python tq.py update --dir example_project --index index.tq</div>
                 sim_log_7: "Создание 1-битной схемы коррекции невязок QJL...",
                 sim_log_8: "Итоговое упакованное представление:",
                 sim_log_9: "байт (сжато из 1 536 байт)",
-                sim_log_10: "Полное квантование вектора завершено! Готово к семантическому поиску."
+                sim_log_10: "Полное квантование вектора завершено! Готово к семантическому поиску.",
+                local_search_status: "Локальный демон подключен",
+                local_search_title: "Поиск по локальному коду",
+                local_search_desc: "Выполняйте семантический поиск по векторам вашего проекта локально через кэш SentenceTransformer на порту 59402.",
+                local_search_placeholder: "Введите запрос для поиска по коду (например: настройка базы данных)...",
+                local_search_btn: "Поиск"
             }
         };
 
@@ -1353,6 +1455,12 @@ chmod +x setup.sh
             }
         }
 
+        function formatBytesVal(b) {
+            if (b < 1024) return `${b} B`;
+            if (b < 1024 * 1024) return `${(b / 1024).toFixed(2)} KB`;
+            return `${(b / (1024 * 1024)).toFixed(2)} MB`;
+        }
+
         // Language Switcher Toggle
         function toggleLangMenu() {
             document.getElementById('lang-dropdown').classList.toggle('show');
@@ -1420,10 +1528,79 @@ chmod +x setup.sh
             }
         }
 
+        // Check local daemon status
+        async function checkDaemonStatus() {
+            try {
+                const res = await fetch("http://127.0.0.1:59402/api/status", { method: 'GET' });
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.status === "success") {
+                        document.getElementById('local-search').style.display = 'block';
+                    }
+                }
+            } catch (err) {
+                // Fail silently (daemon is offline)
+            }
+        }
+
+        async function performLocalSearch() {
+            const input = document.getElementById('local-search-input');
+            const query = input.value.trim();
+            const resultsBox = document.getElementById('local-search-results');
+            
+            if (!query) return;
+            
+            resultsBox.style.display = 'flex';
+            resultsBox.innerHTML = `<div style="text-align: center; color: var(--text-secondary); padding: 1.5rem;"><i class="fa-solid fa-spinner fa-spin" style="margin-right: 8px;"></i> Searching local codebase...</div>`;
+            
+            try {
+                const res = await fetch("http://127.0.0.1:59402/api/local_query", {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ query: query, top_k: 3 })
+                });
+                
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.status === "success" && data.results.length > 0) {
+                        resultsBox.innerHTML = data.results.map(r => `
+                            <div class="search-result-item">
+                                <div class="search-result-header">
+                                    <span class="search-result-path"><i class="fa-regular fa-file-code"></i> ${r.file_path} (Lines ${r.start_line}-${r.end_line})</span>
+                                    <span class="search-result-score">${(r.score * 100).toFixed(1)}% match</span>
+                                </div>
+                                <pre class="search-result-code"><code>${escapeHTML(r.text)}</code></pre>
+                            </div>
+                        `).join('');
+                    } else {
+                        resultsBox.innerHTML = `<div style="text-align: center; color: var(--text-secondary); padding: 1.5rem;">No matches found in the local index file.</div>`;
+                    }
+                } else {
+                    const data = await res.json();
+                    resultsBox.innerHTML = `<div style="text-align: center; color: #ef4444; padding: 1.5rem;"><i class="fa-solid fa-triangle-exclamation"></i> Error: ${data.message || 'Failed to search'}</div>`;
+                }
+            } catch (err) {
+                resultsBox.innerHTML = `<div style="text-align: center; color: #ef4444; padding: 1.5rem;"><i class="fa-solid fa-triangle-exclamation"></i> Connection to local daemon lost.</div>`;
+            }
+        }
+
+        function escapeHTML(str) {
+            return str.replace(/[&<>'"]/g, 
+                tag => ({
+                    '&': '&amp;',
+                    '<': '&lt;',
+                    '>': '&gt;',
+                    "'": '&#39;',
+                    '"': '&quot;'
+                }[tag] || tag)
+            );
+        }
+
         // Initial run
         document.addEventListener('DOMContentLoaded', () => {
             const savedLang = localStorage.getItem('selected_language') || 'en';
             applyLanguage(savedLang);
+            checkDaemonStatus();
         });
     </script>
 </body>
