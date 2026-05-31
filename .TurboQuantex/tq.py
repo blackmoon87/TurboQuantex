@@ -139,10 +139,11 @@ def start_daemon_background():
     try:
         # Start daemon process detached from parent CLI process
         if os.name == "nt":
-            # On Windows, use creationflags to run detached
+            # On Windows, use CREATE_NO_WINDOW to run completely silently without console popup
+            CREATE_NO_WINDOW = 0x08000000
             subprocess.Popen(
                 [python_exe, app_path],
-                creationflags=subprocess.CREATE_NEW_PROCESS_GROUP | subprocess.DETACHED_PROCESS,
+                creationflags=subprocess.CREATE_NEW_PROCESS_GROUP | CREATE_NO_WINDOW,
                 stdout=subprocess.DEVNULL,
                 stderr=subprocess.DEVNULL,
                 cwd=script_dir

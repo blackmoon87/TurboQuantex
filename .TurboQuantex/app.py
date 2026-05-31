@@ -503,7 +503,6 @@ def load_mock_data():
         "message": f"Successfully indexed {indexed} mock documents.",
         "errors_count": len(errors_list)
     })
-
 if __name__ == "__main__":
     os.makedirs("templates", exist_ok=True)
-    app.run(host="127.0.0.1", port=59402, debug=True)
+    app.run(host="127.0.0.1", port=59402, debug=False)
