@@ -380,13 +380,17 @@ def search():
         # 2. Similarity using TurboQuantex inner product estimator
         query_norm_u = query_emb / (query_norm + 1e-8) if query_norm > 1e-8 else query_emb
         
+        # Pre-project query for QJL to avoid redundant dot products in loop
+        p_u = np.dot(engine.S, query_norm_u) if engine.use_qjl else None
+        
         for doc in documents_db:
             sim_est = engine.estimate_inner_product(
                 doc["norm_x"],
                 doc["indices"],
                 doc["q_res"],
                 doc["norm_res"],
-                query_norm_u
+                query_norm_u,
+                p_u=p_u
             )
             # Clip between -1 and 1
             sim_est = float(np.clip(sim_est, -1.0, 1.0))
@@ -526,6 +530,9 @@ def local_query():
         query_norm = np.linalg.norm(query_emb)
         query_norm_u = query_emb / (query_norm + 1e-8) if query_norm > 1e-8 else query_emb
         
+        # Pre-project query for QJL to avoid redundant dot products in loop
+        p_u = np.dot(engine.S, query_norm_u) if engine.use_qjl else None
+        
         results = []
         for doc in documents:
             q_res = None
@@ -537,7 +544,8 @@ def local_query():
                 doc["indices"].astype(np.int32),
                 q_res,
                 doc["norm_res"],
-                query_norm_u
+                query_norm_u,
+                p_u=p_u
             )
             sim = float(np.clip(sim, -1.0, 1.0))
             results.append((doc, sim))

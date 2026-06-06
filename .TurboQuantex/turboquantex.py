@@ -117,7 +117,7 @@ class TurboQuantex:
         x_norm_quant = np.dot(y_quant, self.R)
         return x_norm_quant * norm_x
 
-    def estimate_inner_product(self, norm_x: float, indices: np.ndarray, q_res: Optional[np.ndarray], norm_res: float, u: np.ndarray) -> float:
+    def estimate_inner_product(self, norm_x: float, indices: np.ndarray, q_res: Optional[np.ndarray], norm_res: float, u: np.ndarray, p_u: Optional[np.ndarray] = None) -> float:
         """
         Estimates the inner product between the compressed vector and an uncompressed query u.
         
@@ -138,7 +138,8 @@ class TurboQuantex:
         # 2. QJL residual correction
         # Map boolean array back to +1.0 and -1.0
         q_res_val = np.where(q_res, 1.0, -1.0)
-        p_u = np.dot(self.S, u)
+        if p_u is None:
+            p_u = np.dot(self.S, u)
         
         # Unbiased estimator: ||x|| * ||res|| * sqrt(pi / 2) * mean(q_res * p_u)
         ip_qjl = norm_x * norm_res * np.sqrt(np.pi / 2.0) * float(np.mean(q_res_val * p_u))

@@ -284,6 +284,9 @@ def query_codebase(
     query_norm = np.linalg.norm(query_emb)
     query_norm_u = query_emb / (query_norm + 1e-8) if query_norm > 1e-8 else query_emb
     
+    # Pre-project query for QJL to avoid redundant dot products in loop
+    p_u = np.dot(engine.S, query_norm_u) if engine.use_qjl else None
+    
     results = []
     for doc in documents:
         q_res = None
@@ -295,7 +298,8 @@ def query_codebase(
             doc["indices"].astype(np.int32),
             q_res,
             doc["norm_res"],
-            query_norm_u
+            query_norm_u,
+            p_u=p_u
         )
         sim = float(np.clip(sim, -1.0, 1.0))
         
@@ -363,6 +367,9 @@ def query_codebase_batch(
         query_norm = np.linalg.norm(query_emb)
         query_norm_u = query_emb / (query_norm + 1e-8) if query_norm > 1e-8 else query_emb
         
+        # Pre-project query for QJL to avoid redundant dot products in loop
+        p_u = np.dot(engine.S, query_norm_u) if engine.use_qjl else None
+        
         results = []
         for di, doc in enumerate(documents):
             sim = engine.estimate_inner_product(
@@ -370,7 +377,8 @@ def query_codebase_batch(
                 doc["indices"].astype(np.int32),
                 doc_qres[di],
                 doc["norm_res"],
-                query_norm_u
+                query_norm_u,
+                p_u=p_u
             )
             sim = float(np.clip(sim, -1.0, 1.0))
             results.append({
