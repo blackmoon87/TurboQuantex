@@ -6,7 +6,7 @@ This system allows developers and AI coding agents to semantically search massiv
 
 🌐 **Live Landing Page & RAM Simulator**: [https://blackmoon87.github.io/TurboQuantex/](https://blackmoon87.github.io/TurboQuantex/)
 
-All resources are completely isolated inside the `.TurboQuantex/` folder, ensuring no pollution of the developer's main project files or dependencies.
+All resources are completely isolated inside the `.TurboQuantex/` folder, and the ONNX model files are stored in a shared global directory (`~/.turboquantex/model`) to prevent duplicate downloads across multiple projects.
 
 ---
 
@@ -41,9 +41,10 @@ If you are working with an AI coding assistant (such as Cursor, VS Code AI, or A
 
 The AI agent will autonomously:
 1. Clone the repository and deploy the `.TurboQuantex` folder into your project root.
-2. Install dependencies and configure the environment.
-3. Index your codebase and install the post-commit git hook.
-4. Start the background daemon with auto file watcher.
+2. Check if the ONNX model already exists in the user-global cache directory (`~/.turboquantex/model`). If not, it downloads it once globally.
+3. Install dependencies and configure the environment.
+4. Index your codebase using the global model and install the post-commit git hook.
+5. Start the background daemon with auto file watcher.
 
 ### Method B: Manual Terminal Setup (Alternative)
 

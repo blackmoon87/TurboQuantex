@@ -43,8 +43,7 @@ _local_model_cache = None
 
 class ONNXEmbedder:
     def __init__(self):
-        script_dir = os.path.dirname(os.path.abspath(__file__))
-        self.model_dir = os.path.join(script_dir, "model")
+        self.model_dir = os.path.abspath(os.path.expanduser(os.path.join("~", ".turboquantex", "model")))
         self.model_path = os.path.join(self.model_dir, "model.onnx")
         self.tokenizer_path = os.path.join(self.model_dir, "tokenizer.json")
         
